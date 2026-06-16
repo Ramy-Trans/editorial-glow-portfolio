@@ -11,7 +11,6 @@ export function Showcase() {
     const vid = videoRef.current;
     if (!vid) return;
     if (isInView) {
-      vid.load();
       vid.play().catch(() => {});
     } else {
       vid.pause();
@@ -60,10 +59,12 @@ export function Showcase() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
+            poster="/events/kufpec/kufpec-2.jpg"
             className="h-full w-full object-cover"
           >
-            <source src="/drone-promo.mov" type="video/mp4" />
+            <source src="/drone-promo.mp4" type="video/mp4" />
+            <source src="/drone-promo.webm" type="video/webm" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
           <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-foreground/80 pointer-events-none">
