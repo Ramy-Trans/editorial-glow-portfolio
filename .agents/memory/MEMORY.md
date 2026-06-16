@@ -1,0 +1,1 @@
+- [TanStack Start createServerFn API](tanstack-start-serverfn-api.md) — use `.inputValidator()` not `.validator()`; never place server fns in `src/server/` (Vite blocks it).
