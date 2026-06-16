@@ -21,6 +21,6 @@ try {
   }
 } catch (err) {
   console.warn("[patch-nitro] Warning:", err.message);
-  // Don't exit with error - allow npm install to continue
-  // The patch is optional for installation to succeed
 }
+
+process.exit(0);
