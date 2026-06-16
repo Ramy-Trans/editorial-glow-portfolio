@@ -1,10 +1,17 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 
 export function PromoVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    vid.play().catch(() => {});
+  }, []);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -18,7 +25,6 @@ export function PromoVideo() {
       <div className="relative aspect-video w-full max-h-[85vh]">
         <video
           ref={videoRef}
-          autoPlay
           muted
           loop
           playsInline
@@ -31,7 +37,6 @@ export function PromoVideo() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/30" />
 
-        {/* Label */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -45,7 +50,6 @@ export function PromoVideo() {
           </span>
         </motion.div>
 
-        {/* Mute toggle */}
         <button
           onClick={toggleMute}
           className="absolute bottom-6 right-6 md:bottom-10 md:right-12 flex h-10 w-10 items-center justify-center border border-white/20 bg-background/40 backdrop-blur-sm text-foreground/80 transition-all hover:border-gold hover:text-gold"
