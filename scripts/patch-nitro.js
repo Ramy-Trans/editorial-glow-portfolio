@@ -20,6 +20,7 @@ try {
     console.warn("[patch-nitro] Pattern not found — check nitro version.");
   }
 } catch (err) {
-  console.error("[patch-nitro] Error:", err.message);
-  process.exit(1);
+  console.warn("[patch-nitro] Warning:", err.message);
+  // Don't exit with error - allow npm install to continue
+  // The patch is optional for installation to succeed
 }
