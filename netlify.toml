@@ -1,10 +1,9 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "bun install && bun run build"
   publish = ".output/public"
 
 [build.environment]
   NODE_VERSION = "22"
-  NPM_FLAGS = "--legacy-peer-deps"
   NITRO_PRESET = "netlify"
 
 [[headers]]
