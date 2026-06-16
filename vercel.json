@@ -1,7 +1,7 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "buildCommand": "bun install && bun run build",
   "outputDirectory": ".output/public",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "bun install",
   "framework": null,
   "env": {
     "NITRO_PRESET": "vercel"
