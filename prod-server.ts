@@ -1,8 +1,8 @@
+import handler from "./dist/server/server.js";
 import { join, extname } from "node:path";
-import { existsSync } from "node:fs";
 
 const PORT = Number(process.env.PORT) || 5000;
-const PUBLIC_DIR = join(import.meta.dir, ".output", "public");
+const CLIENT_DIR = join(import.meta.dir, "dist", "client");
 
 const MIME: Record<string, string> = {
   ".js": "application/javascript",
@@ -27,14 +27,12 @@ const MIME: Record<string, string> = {
   ".xml": "application/xml",
 };
 
-const handler = await import("./.output/server/index.mjs");
-
 Bun.serve({
   port: PORT,
   hostname: "0.0.0.0",
   async fetch(request) {
     const url = new URL(request.url);
-    const filePath = join(PUBLIC_DIR, url.pathname);
+    const filePath = join(CLIENT_DIR, url.pathname);
 
     const file = Bun.file(filePath);
     if (await file.exists()) {
@@ -50,7 +48,7 @@ Bun.serve({
       });
     }
 
-    return handler.default.fetch(request);
+    return handler.fetch(request);
   },
 });
 
