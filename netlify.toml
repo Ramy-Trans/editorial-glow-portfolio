@@ -1,6 +1,7 @@
 [build]
   command = "npm install --legacy-peer-deps && bun run build"
-  publish = ".output/public"
+  publish = "dist/client"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "22"
