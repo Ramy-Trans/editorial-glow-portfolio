@@ -4,17 +4,33 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-
-mkdirSync(join(root, ".output", "server"), { recursive: true });
-mkdirSync(join(root, ".output", "public"), { recursive: true });
+const preset = process.env.NITRO_PRESET ?? "node";
 
 const clientDir = join(root, "dist", "client");
-if (existsSync(clientDir)) {
-  cpSync(clientDir, join(root, ".output", "public"), { recursive: true });
-  console.log("[build-output] Copied dist/client → .output/public");
-}
 
-const serverEntry = `import handler from "../../dist/server/server.js";
+if (preset === "netlify") {
+  mkdirSync(join(root, "netlify", "functions"), { recursive: true });
+
+  const fnEntry = `import handler from "../../dist/server/server.js";
+
+export default async (request, context) => {
+  return handler.fetch(request, process.env, context);
+};
+
+export const config = { path: "/*" };
+`;
+  writeFileSync(join(root, "netlify", "functions", "server.mjs"), fnEntry);
+  console.log("[build-output] Created netlify/functions/server.mjs");
+} else {
+  mkdirSync(join(root, ".output", "server"), { recursive: true });
+  mkdirSync(join(root, ".output", "public"), { recursive: true });
+
+  if (existsSync(clientDir)) {
+    cpSync(clientDir, join(root, ".output", "public"), { recursive: true });
+    console.log("[build-output] Copied dist/client → .output/public");
+  }
+
+  const serverEntry = `import handler from "../../dist/server/server.js";
 import { join, extname } from "node:path";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,5 +88,6 @@ Bun.serve({
 console.log("GJ Studio production server on http://0.0.0.0:" + PORT);
 `;
 
-writeFileSync(join(root, ".output", "server", "index.mjs"), serverEntry);
-console.log("[build-output] Created .output/server/index.mjs");
+  writeFileSync(join(root, ".output", "server", "index.mjs"), serverEntry);
+  console.log("[build-output] Created .output/server/index.mjs");
+}
