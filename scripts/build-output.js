@@ -1,6 +1,7 @@
-import { mkdirSync, cpSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, cpSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -11,16 +12,36 @@ const clientDir = join(root, "dist", "client");
 if (preset === "netlify") {
   mkdirSync(join(root, "netlify", "functions"), { recursive: true });
 
-  const fnEntry = `import handler from "../../dist/server/server.js";
+  // Bundle dist/server/server.js into a single self-contained file.
+  // bun resolves ALL dynamic imports (code-split chunks) inline, so Netlify's
+  // esbuild re-bundler never encounters broken relative ./assets/ paths.
+  const bundleCmd = [
+    "bun", "build",
+    join(root, "dist", "server", "server.js"),
+    "--target=node",
+    "--format=esm",
+    "--external=pg",
+    "--external=pg-native",
+    "--external=pg-cloudflare",
+    "--external=jsonwebtoken",
+    "--outfile=" + join(root, "netlify", "functions", "server-bundle.mjs"),
+  ].join(" ");
+
+  console.log("[build-output] Bundling server for Netlify…");
+  execSync(bundleCmd, { stdio: "inherit", cwd: root });
+  console.log("[build-output] Created netlify/functions/server-bundle.mjs");
+
+  const fnEntry = `import handler from "./server-bundle.mjs";
 
 export default async (request, context) => {
-  return handler.fetch(request, process.env, context);
+  return handler.fetch(request);
 };
 
 export const config = { path: "/*" };
 `;
   writeFileSync(join(root, "netlify", "functions", "server.mjs"), fnEntry);
   console.log("[build-output] Created netlify/functions/server.mjs");
+
 } else {
   mkdirSync(join(root, ".output", "server"), { recursive: true });
   mkdirSync(join(root, ".output", "public"), { recursive: true });
