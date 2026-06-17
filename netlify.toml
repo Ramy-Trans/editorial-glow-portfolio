@@ -7,6 +7,9 @@
   NODE_VERSION = "22"
   NITRO_PRESET = "netlify"
 
+[functions.server]
+  external_node_modules = ["pg", "pg-native", "pg-cloudflare", "jsonwebtoken"]
+
 [[headers]]
   for = "/assets/*"
   [headers.values]
