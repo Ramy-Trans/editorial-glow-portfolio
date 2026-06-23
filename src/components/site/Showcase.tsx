@@ -59,7 +59,7 @@ export function Showcase() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="none"
             poster="/events/kufpec/kufpec-2.jpg"
             className="h-full w-full object-cover"
           >

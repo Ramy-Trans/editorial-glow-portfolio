@@ -5,23 +5,15 @@ import { motion } from "framer-motion";
 const col1Images = [
   "/events/kufpec/kufpec-1.jpg",
   "/events/kufpec/kufpec-3.jpg",
-  "/events/kufpec/kufpec-5.jpg",
   "/events/sparix/sparix-1.jpg",
-  "/events/sparix/sparix-3.jpg",
   "/events/abiec/abiec-1.jpg",
-  "/events/kufpec/kufpec-7.jpg",
-  "/events/sparix/sparix-5.jpg",
 ];
 
 const col2Images = [
   "/events/kufpec/kufpec-2.jpg",
   "/events/sparix/sparix-2.jpg",
   "/events/kufpec/kufpec-4.jpg",
-  "/events/sparix/sparix-4.jpg",
   "/events/abiec/abiec-2.jpg",
-  "/events/kufpec/kufpec-6.jpg",
-  "/events/sparix/sparix-6.jpg",
-  "/events/kufpec/kufpec-8.jpg",
 ];
 
 function ScrollColumn({ images, direction }: { images: string[]; direction: "up" | "down" }) {
@@ -35,7 +27,13 @@ function ScrollColumn({ images, direction }: { images: string[]; direction: "up"
       >
         {doubled.map((src, i) => (
           <div key={i} className="relative aspect-[3/2] w-full flex-shrink-0 overflow-hidden">
-            <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           </div>
         ))}
       </motion.div>

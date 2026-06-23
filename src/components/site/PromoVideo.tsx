@@ -4,13 +4,27 @@ import { Volume2, VolumeX } from "lucide-react";
 
 export function PromoVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     const vid = videoRef.current;
-    if (!vid) return;
-    vid.muted = true;
-    vid.play().catch(() => {});
+    const section = sectionRef.current;
+    if (!vid || !section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
   }, []);
 
   const toggleMute = () => {
@@ -21,7 +35,7 @@ export function PromoVideo() {
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-background">
+    <section ref={sectionRef} className="relative w-full overflow-hidden bg-background">
       <div className="relative aspect-video w-full max-h-[85vh]">
         <video
           ref={videoRef}
