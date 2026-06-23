@@ -36,8 +36,6 @@ if (preset === "netlify") {
 export default async (request, context) => {
   return handler.fetch(request);
 };
-
-export const config = { path: "/*" };
 `;
   writeFileSync(join(root, "netlify", "functions", "server.mjs"), fnEntry);
   console.log("[build-output] Created netlify/functions/server.mjs");
