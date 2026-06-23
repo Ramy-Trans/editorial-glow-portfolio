@@ -44,3 +44,7 @@ build = ["bun", "run", "build"]
 [userenv.shared]
 ADMIN_SECRET = "gjstudio-replit-krzlg3psoe8-secret"
 ADMIN_PASSWORD = "GJstudio#Cairo2026!Events"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
