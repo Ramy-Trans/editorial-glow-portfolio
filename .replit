@@ -42,6 +42,8 @@ build = ["bun", "run", "build"]
 [userenv]
 
 [userenv.shared]
+ADMIN_SECRET = "3610a6b024e11425b484481c13539025823e66a756836bf855c581ccbbf850b6f0da9dcb1b9836524ac64b99fbae578a"
+ADMIN_PASSWORD = "GJstudio#5x2uivfd8RufEwXX!2026"
 
 [postMerge]
 path = "scripts/post-merge.sh"
