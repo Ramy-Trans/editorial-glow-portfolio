@@ -69,7 +69,7 @@ export function Showcase() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
           <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-foreground/80 pointer-events-none">
             <span className="h-px w-6 bg-gold" />
-            <span>Behind The Scenes — GJ Studio</span>
+            <span>Behind The Scenes — GJ Media House</span>
           </div>
         </motion.div>
       </div>

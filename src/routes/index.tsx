@@ -15,7 +15,7 @@ import { WhatsApp } from "@/components/site/WhatsApp";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GJ Studio — Media Production & Event Coverage" },
+      { title: "GJ Media House — Media Production & Event Coverage" },
       {
         name: "description",
         content:
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "GJ Studio — Media Production & Event Coverage",
+        content: "GJ Media House — Media Production & Event Coverage",
       },
       {
         property: "og:description",

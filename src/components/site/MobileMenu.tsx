@@ -42,7 +42,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
               onClick={onClose}
               className="flex items-center"
             >
-              <img src={gjLogo} alt="GJ Studio" className="h-9 w-9 object-contain" />
+              <img src={gjLogo} alt="GJ Media House" className="h-9 w-9 object-contain" />
             </Link>
             <div className="flex items-center gap-3">
               <button

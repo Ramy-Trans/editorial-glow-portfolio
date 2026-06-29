@@ -10,7 +10,7 @@ import { portfolio } from "@/data/portfolio";
 export const Route = createFileRoute("/portfolio/")({
   head: () => ({
     meta: [
-      { title: "Portfolio — GJ Studio" },
+      { title: "Portfolio — GJ Media House" },
       { name: "description", content: "A curated archive of events, corporate gatherings, conferences, and exhibitions across Egypt." },
     ],
   }),
@@ -108,7 +108,7 @@ function PortfolioPage() {
       <section className="relative h-[55vh] min-h-[420px] overflow-hidden">
         <img
           src="/events/kufpec/kufpec-3.jpg"
-          alt="GJ Studio Portfolio"
+          alt="GJ Media House Portfolio"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/20 to-background" />

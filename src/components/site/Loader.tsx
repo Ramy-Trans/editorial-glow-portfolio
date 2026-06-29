@@ -14,7 +14,7 @@ export function Loader() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.4, ease: "easeOut" }}
       >
-        <img src={gjLogo} alt="GJ Studio" className="h-20 w-20 object-contain" />
+        <img src={gjLogo} alt="GJ Media House" className="h-20 w-20 object-contain" />
       </motion.div>
     </motion.div>
   );

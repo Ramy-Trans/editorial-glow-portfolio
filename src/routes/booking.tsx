@@ -12,11 +12,11 @@ import { useLang } from "@/lib/i18n";
 export const Route = createFileRoute("/booking")({
   head: () => ({
     meta: [
-      { title: "Get a Quotation — GJ Studio" },
+      { title: "Get a Quotation — GJ Media House" },
       {
         name: "description",
         content:
-          "Request a quotation for your event photography or media production with GJ Studio. Events, corporate, conferences, hotels and more.",
+          "Request a quotation for your event photography or media production with GJ Media House. Events, corporate, conferences, hotels and more.",
       },
     ],
   }),
@@ -144,7 +144,7 @@ function BookingPage() {
                 <Reveal>
                   <div className="mb-2 flex items-center gap-4 text-xs uppercase tracking-[0.4em] text-gold">
                     <span className="h-px w-10 bg-gold" />
-                    GJ Studio
+                    GJ Media House
                   </div>
                   <h1 className="font-display text-5xl font-extrabold leading-[0.95] tracking-tight md:text-6xl">
                     {t("booking_title")}

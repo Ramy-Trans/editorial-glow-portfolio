@@ -13,21 +13,21 @@ const items = [
     name: "Ahmed Al-Rashid",
     role: "Events Manager, AZAL Pyramids Hotel",
     quote:
-      "GJ Studio doesn't just take photographs — they capture the atmosphere, the detail, and the emotion of every moment. Our Ramadan events have never looked more beautiful.",
+      "GJ Media House doesn't just take photographs — they capture the atmosphere, the detail, and the emotion of every moment. Our Ramadan events have never looked more beautiful.",
   },
   {
     img: c2,
     name: "Sarah Khalil",
     role: "Head of Communications, KUFPEC",
     quote:
-      "Working with GJ Studio on our international exhibition was seamless. They navigated a complex, multi-hall event with professionalism and delivered images that truly represented our brand.",
+      "Working with GJ Media House on our international exhibition was seamless. They navigated a complex, multi-hall event with professionalism and delivered images that truly represented our brand.",
   },
   {
     img: c3,
     name: "Omar Nasser",
     role: "CEO, Gulf Corporate Partners",
     quote:
-      "Consistent quality, professional conduct, and images that always exceed expectations. GJ Studio is our go-to partner for every corporate event we host.",
+      "Consistent quality, professional conduct, and images that always exceed expectations. GJ Media House is our go-to partner for every corporate event we host.",
   },
 ];
 

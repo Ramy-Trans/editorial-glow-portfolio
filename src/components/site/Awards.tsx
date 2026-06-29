@@ -27,7 +27,7 @@ export function Awards() {
             <Reveal delay={0.1}>
               <p className="mt-8 max-w-md text-base leading-relaxed text-muted-foreground">
                 From five-star hotels in Cairo to international industry exhibitions,
-                GJ Studio has been trusted by leading organisations to document
+                GJ Media House has been trusted by leading organisations to document
                 their most important moments.
               </p>
             </Reveal>

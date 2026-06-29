@@ -77,9 +77,9 @@ export const equipment: Equipment[] = [
 export const timeline = [
   {
     year: "2015",
-    title: "GJ Studio Founded",
+    title: "GJ Media House Founded",
     description:
-      "Established GJ Studio in Cairo with a focus on professional event and corporate photography. First major hotel event coverage completed at a leading Cairo venue.",
+      "Established GJ Media House in Cairo with a focus on professional event and corporate photography. First major hotel event coverage completed at a leading Cairo venue.",
   },
   {
     year: "2017",

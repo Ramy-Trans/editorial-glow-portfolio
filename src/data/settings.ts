@@ -1,6 +1,6 @@
 export const siteSettings = {
-  name: "GJ Studio",
-  studio: "GJ Studio",
+  name: "GJ Media House",
+  studio: "GJ Media House",
   tagline: "Professional Photography & Media Studio",
   description:
     "Professional event, corporate, conference, and hotel photography based in Egypt. Delivering precision and artistry for every occasion.",

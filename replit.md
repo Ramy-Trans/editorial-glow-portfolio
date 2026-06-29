@@ -1,6 +1,6 @@
-# GJ Studio — Media Production Website
+# GJ Media House — Media Production Website
 
-A professional website for GJ Studio, a media production house based in Cairo, Egypt. Specialises in video production, event coverage, live streaming, and professional photography.
+A professional website for GJ Media House, a media production house based in Cairo, Egypt. Specialises in video production, event coverage, live streaming, and professional photography.
 
 ## Tech Stack
 

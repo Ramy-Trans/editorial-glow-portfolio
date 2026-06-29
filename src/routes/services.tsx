@@ -8,8 +8,8 @@ import { Reveal } from "@/components/site/Reveal";
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Services — GJ Studio" },
-      { name: "description", content: "Media production, event coverage, and live streaming services by GJ Studio." },
+      { title: "Services — GJ Media House" },
+      { name: "description", content: "Media production, event coverage, and live streaming services by GJ Media House." },
     ],
   }),
   component: ServicesPage,
@@ -69,7 +69,7 @@ function ServicesPage() {
         <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-full w-full bg-gradient-to-br from-gold/5 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-[1600px] w-full">
           <Reveal>
-            <p className="mb-6 text-[11px] uppercase tracking-[0.4em] text-gold">GJ Studio</p>
+            <p className="mb-6 text-[11px] uppercase tracking-[0.4em] text-gold">GJ Media House</p>
           </Reveal>
           <Reveal delay={0.05}>
             <h1 className="font-display text-6xl font-extrabold leading-[0.92] tracking-tight md:text-8xl lg:text-[9vw]">

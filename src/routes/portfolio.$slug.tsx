@@ -13,7 +13,7 @@ export const Route = createFileRoute("/portfolio/$slug")({
     const item = getPortfolioItem(params.slug);
     return {
       meta: [
-        { title: item ? `${item.title} — GJ Studio` : "Not Found" },
+        { title: item ? `${item.title} — GJ Media House` : "Not Found" },
         { name: "description", content: item?.description ?? "" },
       ],
     };

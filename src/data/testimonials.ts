@@ -20,7 +20,7 @@ export const testimonials: Testimonial[] = [
     name: "Ahmed Al-Rashid",
     role: "Events Manager, AZAL Pyramids Hotel",
     quote:
-      "GJ Studio doesn't just take photographs — they capture the atmosphere, the detail, and the emotion of every moment. Our Ramadan events have never looked more beautiful.",
+      "GJ Media House doesn't just take photographs — they capture the atmosphere, the detail, and the emotion of every moment. Our Ramadan events have never looked more beautiful.",
     rating: 5,
     category: "Hotels",
   },
@@ -30,7 +30,7 @@ export const testimonials: Testimonial[] = [
     name: "Sarah Khalil",
     role: "Head of Communications, KUFPEC",
     quote:
-      "Working with GJ Studio on our international exhibition was seamless. They navigated a complex, multi-hall event with professionalism and delivered images that truly represented our brand.",
+      "Working with GJ Media House on our international exhibition was seamless. They navigated a complex, multi-hall event with professionalism and delivered images that truly represented our brand.",
     rating: 5,
     category: "Exhibitions",
   },
@@ -40,7 +40,7 @@ export const testimonials: Testimonial[] = [
     name: "Omar Nasser",
     role: "CEO, Gulf Corporate Partners",
     quote:
-      "Consistent quality, professional conduct, and images that always exceed expectations. GJ Studio is our go-to partner for every corporate event we host.",
+      "Consistent quality, professional conduct, and images that always exceed expectations. GJ Media House is our go-to partner for every corporate event we host.",
     rating: 5,
     category: "Corporate",
   },
@@ -50,7 +50,7 @@ export const testimonials: Testimonial[] = [
     name: "Layla Hassan",
     role: "Director, Forum Network",
     quote:
-      "We trusted GJ Studio with the coverage of our Fourth Education Forum — the promo video and photography were outstanding. Delivered on time, every time.",
+      "We trusted GJ Media House with the coverage of our Fourth Education Forum — the promo video and photography were outstanding. Delivered on time, every time.",
     rating: 5,
     category: "Events",
   },
@@ -60,7 +60,7 @@ export const testimonials: Testimonial[] = [
     name: "Tariq Al-Mansouri",
     role: "Marketing Director, Maison Azur",
     quote:
-      "Our brand photography before GJ Studio was average. After — it was exceptional. The team's eye for composition and light is genuinely world-class.",
+      "Our brand photography before GJ Media House was average. After — it was exceptional. The team's eye for composition and light is genuinely world-class.",
     rating: 5,
     category: "Corporate",
   },
@@ -70,7 +70,7 @@ export const testimonials: Testimonial[] = [
     name: "Hana Fouad",
     role: "Event Coordinator, Cairo Elite",
     quote:
-      "We brought GJ Studio in for a high-profile gala with over 400 guests. They moved through the event quietly and delivered a gallery of images that left everyone speechless.",
+      "We brought GJ Media House in for a high-profile gala with over 400 guests. They moved through the event quietly and delivered a gallery of images that left everyone speechless.",
     rating: 5,
     category: "Events",
   },

@@ -11,8 +11,8 @@ import { siteSettings } from "@/data/settings";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — GJ Studio" },
-      { name: "description", content: "Get in touch with GJ Studio. Book an event photography session or discuss your project." },
+      { title: "Contact — GJ Media House" },
+      { name: "description", content: "Get in touch with GJ Media House. Book an event photography session or discuss your project." },
     ],
   }),
   component: ContactPage,

@@ -45,7 +45,7 @@ export function Nav() {
       >
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-5 md:px-12">
           <Link to="/" className="flex items-center">
-            <img src={gjLogo} alt="GJ Studio" className="h-8 w-8 object-contain md:h-9 md:w-9" />
+            <img src={gjLogo} alt="GJ Media House" className="h-8 w-8 object-contain md:h-9 md:w-9" />
           </Link>
 
           <nav className="hidden items-center gap-10 md:flex">

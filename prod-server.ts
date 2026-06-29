@@ -52,4 +52,4 @@ Bun.serve({
   },
 });
 
-console.log(`GJ Studio production server on http://0.0.0.0:${PORT}`);
+console.log(`GJ Media House production server on http://0.0.0.0:${PORT}`);

@@ -8,7 +8,7 @@ import { SectionLabel } from "@/components/site/SectionLabel";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — GJ Studio" },
+      { title: "About — GJ Media House" },
       { name: "description", content: "We are a creative media production house specializing in high-quality video production, event coverage, podcast production, and professional photography." },
     ],
   }),
@@ -65,7 +65,7 @@ function AboutPage() {
               <div className="relative overflow-hidden aspect-[4/5]">
                 <img
                   src="/events/kufpec/kufpec-4.jpg"
-                  alt="KUFPEC Conference — GJ Studio"
+                  alt="KUFPEC Conference — GJ Media House"
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover"

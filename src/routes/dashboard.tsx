@@ -16,7 +16,7 @@ import {
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [{ title: "Studio Dashboard — GJ Studio" }],
+    meta: [{ title: "Studio Dashboard — GJ Media House" }],
   }),
   component: DashboardPage,
 });

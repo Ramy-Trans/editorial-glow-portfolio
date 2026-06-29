@@ -32,7 +32,7 @@ export const services: Service[] = [
     subtitle: "Weddings, iftars, galas & private occasions",
     description: "Elegant coverage of your most meaningful celebrations.",
     longDescription:
-      "From Ramadan iftars at five-star hotels to private weddings and corporate galas, GJ Studio documents every occasion with artistry and discretion. We capture the atmosphere, the details, and the moments that make your event unforgettable.",
+      "From Ramadan iftars at five-star hotels to private weddings and corporate galas, GJ Media House documents every occasion with artistry and discretion. We capture the atmosphere, the details, and the moments that make your event unforgettable.",
     tiers: [
       {
         name: "Half-Day",
@@ -132,7 +132,7 @@ export const services: Service[] = [
     subtitle: "Exhibitions, summits & trade shows",
     description: "Comprehensive coverage of large-scale industry events.",
     longDescription:
-      "International trade shows, industry summits, and multi-hall exhibitions demand photographers who can work quickly, navigate large venues, and deliver consistent quality. GJ Studio has covered major industry events including international oil and gas exhibitions across the region.",
+      "International trade shows, industry summits, and multi-hall exhibitions demand photographers who can work quickly, navigate large venues, and deliver consistent quality. GJ Media House has covered major industry events including international oil and gas exhibitions across the region.",
     tiers: [
       {
         name: "Single Day",
@@ -182,7 +182,7 @@ export const services: Service[] = [
     subtitle: "Five-star events & seasonal occasions",
     description: "Premium event photography for luxury hospitality brands.",
     longDescription:
-      "GJ Studio is a trusted partner for premium hotels across Egypt. From Ramadan iftar series to exclusive ballroom galas, we understand hospitality's demand for excellence and discretion. Our imagery reflects the warmth, elegance, and atmosphere your venue delivers.",
+      "GJ Media House is a trusted partner for premium hotels across Egypt. From Ramadan iftar series to exclusive ballroom galas, we understand hospitality's demand for excellence and discretion. Our imagery reflects the warmth, elegance, and atmosphere your venue delivers.",
     tiers: [
       {
         name: "Session",
@@ -280,7 +280,7 @@ export const services: Service[] = [
     subtitle: "Event reels & promotional content",
     description: "Short-form video content for events and corporate clients.",
     longDescription:
-      "Beyond photography, GJ Studio produces polished event highlight reels and promotional video content for corporate clients. From educational forum promos to hotel season trailers, our video work captures the energy and prestige of your occasion.",
+      "Beyond photography, GJ Media House produces polished event highlight reels and promotional video content for corporate clients. From educational forum promos to hotel season trailers, our video work captures the energy and prestige of your occasion.",
     tiers: [
       {
         name: "Highlight Reel",
@@ -334,7 +334,7 @@ export const faq: FAQItem[] = [
   {
     question: "Do you cover events outside Cairo?",
     answer:
-      "Yes. GJ Studio covers events across Egypt and can travel regionally by arrangement. Travel and accommodation costs for events outside Cairo are agreed in advance.",
+      "Yes. GJ Media House covers events across Egypt and can travel regionally by arrangement. Travel and accommodation costs for events outside Cairo are agreed in advance.",
   },
   {
     question: "What is your editing style?",
@@ -364,6 +364,6 @@ export const faq: FAQItem[] = [
   {
     question: "Do you also provide video?",
     answer:
-      "Yes. GJ Studio provides event highlight reels and promotional video production in addition to photography. Speak to us about a combined photo and video package for your event.",
+      "Yes. GJ Media House provides event highlight reels and promotional video production in addition to photography. Speak to us about a combined photo and video package for your event.",
   },
 ];
