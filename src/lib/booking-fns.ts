@@ -54,7 +54,7 @@ function verifyToken(token: string): boolean {
 }
 
 export const submitBookingFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as BookingInput)
+  .validator((d: unknown) => d as BookingInput)
   .handler(async ({ data }) => {
     const { query } = await import("./db");
     await query(
@@ -65,7 +65,7 @@ export const submitBookingFn = createServerFn({ method: "POST" })
   });
 
 export const submitContactFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as ContactInput)
+  .validator((d: unknown) => d as ContactInput)
   .handler(async ({ data }) => {
     const { query } = await import("./db");
     await query(
@@ -76,7 +76,7 @@ export const submitContactFn = createServerFn({ method: "POST" })
   });
 
 export const adminLoginFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { password: string })
+  .validator((d: unknown) => d as { password: string })
   .handler(async ({ data }) => {
     const adminPass = process.env.ADMIN_PASSWORD || "GJstudio#Cairo2026!Events";
     if (data.password !== adminPass) {
@@ -86,13 +86,13 @@ export const adminLoginFn = createServerFn({ method: "POST" })
   });
 
 export const verifyAdminFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string })
+  .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
     return { valid: verifyToken(data.token) };
   });
 
 export const getBookingsFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string })
+  .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
     if (!verifyToken(data.token)) throw new Error("Unauthorized");
     const { query } = await import("./db");
@@ -103,7 +103,7 @@ export const getBookingsFn = createServerFn({ method: "POST" })
   });
 
 export const getContactMessagesFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string })
+  .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
     if (!verifyToken(data.token)) throw new Error("Unauthorized");
     const { query } = await import("./db");
@@ -114,7 +114,7 @@ export const getContactMessagesFn = createServerFn({ method: "POST" })
   });
 
 export const updateBookingStatusFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string; id: number; status: string })
+  .validator((d: unknown) => d as { token: string; id: number; status: string })
   .handler(async ({ data }) => {
     if (!verifyToken(data.token)) throw new Error("Unauthorized");
     const allowed = ["pending", "confirmed", "rejected"];
@@ -125,7 +125,7 @@ export const updateBookingStatusFn = createServerFn({ method: "POST" })
   });
 
 export const deleteBookingFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string; id: number })
+  .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
     if (!verifyToken(data.token)) throw new Error("Unauthorized");
     const { query } = await import("./db");
@@ -134,7 +134,7 @@ export const deleteBookingFn = createServerFn({ method: "POST" })
   });
 
 export const deleteContactMessageFn = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => d as { token: string; id: number })
+  .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
     if (!verifyToken(data.token)) throw new Error("Unauthorized");
     const { query } = await import("./db");
