@@ -64,7 +64,7 @@ export const portfolio: PortfolioItem[] = [
     year: "2025",
     client: "Various Clients",
     location: "Cairo, Egypt",
-    coverImage: "/events/event-coverage/1.jpg",
+    coverImage: "/event-coverage/ec-3.jpg",
     images: Array.from({ length: 18 }, (_, i) => `/events/event-coverage/${i + 1}.jpg`),
     description:
       "A curated selection of event photography spanning corporate gatherings, cultural celebrations, and private occasions across Cairo. Each image reflects our commitment to capturing authentic moments with a polished, editorial approach.",

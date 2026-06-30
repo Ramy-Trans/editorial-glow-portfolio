@@ -149,10 +149,9 @@ function DashboardPage() {
         >
           <div className="mb-10 text-center">
             <div className="font-display text-3xl font-extrabold tracking-tight">
-              GJ<span className="text-gold">.</span>
-              <span className="ml-1 text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Studio</span>
+              GJ<span className="text-gold"> Media</span> House
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Studio Dashboard — Admin Access</p>
+            <p className="mt-2 text-sm text-muted-foreground">Media House Dashboard — Admin Access</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -201,8 +200,7 @@ function DashboardPage() {
       <header className="sticky top-0 z-40 border-b border-white/5 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
           <div className="font-display text-xl font-extrabold tracking-tight">
-            GJ<span className="text-gold">.</span>
-            <span className="ml-1 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Studio</span>
+            GJ<span className="text-gold"> Media</span> House
             <span className="ml-3 text-xs text-muted-foreground/60">/ Dashboard</span>
           </div>
           <div className="flex items-center gap-3">

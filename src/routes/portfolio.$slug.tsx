@@ -160,32 +160,6 @@ function PortfolioDetailPage() {
             <div className="md:col-span-5 md:pl-8">
               <Reveal>
                 <div className="sticky top-32 space-y-8">
-                  <div className="border border-white/10 bg-charcoal/40 p-8 backdrop-blur-xl">
-                    <h3 className="mb-6 font-display text-sm font-extrabold uppercase tracking-[0.3em] text-gold">
-                      Project Details
-                    </h3>
-                    <div className="space-y-5">
-                      {[
-                        { icon: User, label: "Client", value: item.client },
-                        { icon: Tag, label: "Category", value: item.category },
-                        { icon: MapPin, label: "Location", value: item.location },
-                        { icon: Calendar, label: "Year", value: item.year },
-                      ].map(({ icon: Icon, label, value }) => (
-                        <div key={label} className="flex items-start gap-4 border-b border-white/5 pb-5">
-                          <span className="mt-0.5 flex h-8 w-8 items-center justify-center border border-gold/30 text-gold">
-                            <Icon className="h-3.5 w-3.5" />
-                          </span>
-                          <div>
-                            <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                              {label}
-                            </div>
-                            <div className="mt-1 font-display font-extrabold">{value}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Thumbnail strip */}
                   <div>
                     <div className="mb-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
