@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { useLang } from "@/lib/i18n";
@@ -13,16 +14,25 @@ const word: Variants = {
 export function Hero() {
   const { t, isRTL } = useLang();
   const headline = [t("hero_h1"), t("hero_h2")].filter(Boolean);
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const vid = mobileVideoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    vid.play().catch(() => {});
+  }, []);
 
   return (
     <section className="relative h-[100svh] min-h-[600px] w-full overflow-hidden">
       {/* Mobile: drone video background */}
       <video
+        ref={mobileVideoRef}
         autoPlay
         muted
         loop
         playsInline
-        preload="none"
+        preload="auto"
         poster="/events/kufpec/kufpec-2.jpg"
         className="absolute inset-0 h-full w-full object-cover md:hidden"
       >
