@@ -85,7 +85,8 @@ function DashboardPage() {
       setPageState("dashboard");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setLoginError(msg.includes("Invalid password") ? "Incorrect password." : `Error: ${msg}`);
+      console.error("[DEBUG][handleLogin] raw error:", err);
+      setLoginError(`[DEBUG] ${msg}`);
     } finally {
       setLoginLoading(false);
     }
