@@ -42,11 +42,6 @@ build = ["bun", "run", "build"]
 [userenv]
 
 [userenv.shared]
-ADMIN_PASSWORD = "GJstudio#5x2uivfd8RufEwXX!2026"
-ADMIN_SECRET = "3610a6b024e11425b484481c13539025823e66a756836bf855c581ccbbf850b6f0da9dcb1b9836524ac64b99fbae578a"
-SUPABASE_DATABASE_URL = "postgresql://postgres:V-*sjAt%2Fi%40Rktm7@db.uavivgjpfuddrivsmptv.supabase.co:5432/postgres?sslmode=require"
-SUPABASE_URL = "https://uavivgjpfuddrivsmptv.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhdml2Z2pwZnVkZHJpdnNtcHR2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUzMTIyOSwiZXhwIjoyMDk2MTA3MjI5fQ.hSBPn5_qAyWWVUMz5bmXPX1kz5qTmKdZZ3bKXha5wfE"
 
 [postMerge]
 path = "scripts/post-merge.sh"
