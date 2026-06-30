@@ -44,7 +44,9 @@ async function hmacHex(secret: string, message: string): Promise<string> {
 
 async function signToken(): Promise<string> {
   const ts = Date.now();
-  const secret = process.env.ADMIN_SECRET || "fallback-secret";
+  const cfEnv = (globalThis as any).__env__;
+  const secret =
+    process.env.ADMIN_SECRET ?? cfEnv?.ADMIN_SECRET ?? "fallback-secret";
   const sig = await hmacHex(secret, `admin:${ts}`);
   return btoa(`admin:${ts}:${sig}`);
 }
@@ -55,7 +57,9 @@ async function verifyToken(token: string): Promise<boolean> {
     const [, tsStr, sig] = decoded.split(":");
     const ts = parseInt(tsStr, 10);
     if (Date.now() - ts > 86_400_000) return false;
-    const secret = process.env.ADMIN_SECRET || "fallback-secret";
+    const cfEnv = (globalThis as any).__env__;
+    const secret =
+      process.env.ADMIN_SECRET ?? cfEnv?.ADMIN_SECRET ?? "fallback-secret";
     const expected = await hmacHex(secret, `admin:${ts}`);
     return sig === expected;
   } catch {
@@ -98,30 +102,13 @@ export const submitContactFn = createServerFn({ method: "POST" })
 export const adminLoginFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { password: string })
   .handler(async ({ data }) => {
-    console.log("[DEBUG][adminLoginFn] handler reached");
-    console.log("[DEBUG][adminLoginFn] ADMIN_PASSWORD exists:", !!process.env.ADMIN_PASSWORD);
-    console.log("[DEBUG][adminLoginFn] ADMIN_SECRET exists:", !!process.env.ADMIN_SECRET);
-    console.log("[DEBUG][adminLoginFn] globalThis.__env__ exists:", !!(globalThis as any).__env__);
-    console.log("[DEBUG][adminLoginFn] globalThis.__env__.ADMIN_PASSWORD exists:", !!(globalThis as any).__env__?.ADMIN_PASSWORD);
-
-    const adminPass = process.env.ADMIN_PASSWORD || "GJstudio#Cairo2026!Events";
-    console.log("[DEBUG][adminLoginFn] using fallback password:", !process.env.ADMIN_PASSWORD);
-    console.log("[DEBUG][adminLoginFn] password match:", data.password === adminPass);
-
-    if (data.password !== adminPass) {
-      const err = new Error(`[DEBUG] Password mismatch. ADMIN_PASSWORD from env: ${!!process.env.ADMIN_PASSWORD}, from __env__: ${!!(globalThis as any).__env__?.ADMIN_PASSWORD}`);
-      console.error("[DEBUG][adminLoginFn] password mismatch:", err.message);
-      throw err;
-    }
-
-    try {
-      const token = await signToken();
-      console.log("[DEBUG][adminLoginFn] token created successfully:", !!token);
-      return { token };
-    } catch (signErr) {
-      console.error("[DEBUG][adminLoginFn] signToken failed:", signErr);
-      throw signErr;
-    }
+    const cfEnv = (globalThis as any).__env__;
+    const adminPass =
+      process.env.ADMIN_PASSWORD ??
+      cfEnv?.ADMIN_PASSWORD ??
+      "GJstudio#Cairo2026!Events";
+    if (data.password !== adminPass) throw new Error("Invalid password");
+    return { token: await signToken() };
   });
 
 export const verifyAdminFn = createServerFn({ method: "POST" })
