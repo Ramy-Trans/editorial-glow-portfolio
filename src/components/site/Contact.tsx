@@ -153,7 +153,7 @@ export function Contact() {
                             disabled={status === "sending"}
                             className="group inline-flex items-center justify-center gap-3 bg-gold px-10 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-gold-foreground transition-all hover:scale-[1.01] disabled:opacity-60 w-full md:w-auto"
                           >
-                            {status === "sending" ? "Sending…" : "Send Inquiry"}
+                            {status === "sending" ? "Sending…" : "Get Quotation"}
                             {status !== "sending" && (
                               <span className="transition-transform group-hover:translate-x-1">→</span>
                             )}

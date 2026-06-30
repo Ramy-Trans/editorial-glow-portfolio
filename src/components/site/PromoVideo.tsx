@@ -51,19 +51,6 @@ export function PromoVideo() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/30" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-          className="absolute bottom-6 left-6 md:bottom-10 md:left-12 flex items-center gap-4"
-        >
-          <span className="h-px w-8 bg-gold" />
-          <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/80">
-            Aerial Showcase
-          </span>
-        </motion.div>
-
         <button
           onClick={toggleMute}
           className="absolute bottom-6 right-6 md:bottom-10 md:right-12 flex h-10 w-10 items-center justify-center border border-white/20 bg-background/40 backdrop-blur-sm text-foreground/80 transition-all hover:border-gold hover:text-gold"

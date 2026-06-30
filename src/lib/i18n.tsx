@@ -63,7 +63,7 @@ const t_en = {
   booking_phone: "Phone Number",
   booking_occasion: "Occasion / Event Type",
   booking_desc: "Tell us about your event",
-  booking_submit: "Send Inquiry",
+  booking_submit: "Get Quotation",
   booking_sending: "Sending…",
   booking_success_title: "Request Received!",
   booking_success_desc:

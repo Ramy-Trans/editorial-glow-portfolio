@@ -17,8 +17,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-12">
           <div className="md:col-span-4">
             <Link to="/" className="font-display text-2xl font-extrabold tracking-tight">
-              GJ<span className="text-gold">.</span>
-              <span className="ml-1 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Studio</span>
+              GJ <span className="text-gold">Media</span> House
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Professional event, corporate, conference, and hotel photography
