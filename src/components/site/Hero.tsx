@@ -16,14 +16,18 @@ export function Hero() {
 
   return (
     <section className="relative h-[100svh] min-h-[600px] w-full overflow-hidden">
-      {/* Mobile: static image — skip the 58 MB video entirely */}
-      <img
-        src="/events/kufpec/kufpec-2.jpg"
-        alt=""
-        aria-hidden
-        fetchPriority="high"
+      {/* Mobile: drone video background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster="/events/kufpec/kufpec-2.jpg"
         className="absolute inset-0 h-full w-full object-cover md:hidden"
-      />
+      >
+        <source src="/drone3-mobile.mp4" type="video/mp4" />
+      </video>
 
       {/* Desktop: video background — lazy-loaded after page paint */}
       <video
