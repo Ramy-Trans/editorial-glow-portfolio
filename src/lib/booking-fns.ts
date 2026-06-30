@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createHmac } from "crypto";
 
 export interface BookingInput {
   name: string;
@@ -28,25 +27,36 @@ export interface ContactMessage extends ContactInput {
   created_at: string;
 }
 
-function signToken(): string {
-  const ts = Date.now();
-  const secret = process.env.ADMIN_SECRET || "fallback-secret";
-  const sig = createHmac("sha256", secret)
-    .update(`admin:${ts}`)
-    .digest("hex");
-  return Buffer.from(`admin:${ts}:${sig}`).toString("base64");
+async function hmacHex(secret: string, message: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const buf = await crypto.subtle.sign("HMAC", key, enc.encode(message));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function verifyToken(token: string): boolean {
+async function signToken(): Promise<string> {
+  const ts = Date.now();
+  const secret = process.env.ADMIN_SECRET || "fallback-secret";
+  const sig = await hmacHex(secret, `admin:${ts}`);
+  return btoa(`admin:${ts}:${sig}`);
+}
+
+async function verifyToken(token: string): Promise<boolean> {
   try {
-    const decoded = Buffer.from(token, "base64").toString("utf8");
+    const decoded = atob(token);
     const [, tsStr, sig] = decoded.split(":");
     const ts = parseInt(tsStr, 10);
     if (Date.now() - ts > 86_400_000) return false;
     const secret = process.env.ADMIN_SECRET || "fallback-secret";
-    const expected = createHmac("sha256", secret)
-      .update(`admin:${ts}`)
-      .digest("hex");
+    const expected = await hmacHex(secret, `admin:${ts}`);
     return sig === expected;
   } catch {
     return false;
@@ -56,22 +66,32 @@ function verifyToken(token: string): boolean {
 export const submitBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as BookingInput)
   .handler(async ({ data }) => {
-    const { query } = await import("./db");
-    await query(
-      `INSERT INTO bookings (name, email, phone, occasion, description) VALUES ($1, $2, $3, $4, $5)`,
-      [data.name, data.email, data.phone, data.occasion, data.description]
-    );
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { error } = await sb.from("bookings").insert({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      occasion: data.occasion,
+      description: data.description,
+    });
+    if (error) throw new Error(error.message);
     return { success: true };
   });
 
 export const submitContactFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as ContactInput)
   .handler(async ({ data }) => {
-    const { query } = await import("./db");
-    await query(
-      `INSERT INTO contact_messages (name, email, phone, event_type, message) VALUES ($1, $2, $3, $4, $5)`,
-      [data.name, data.email, data.phone, data.event_type, data.message]
-    );
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { error } = await sb.from("contact_messages").insert({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      event_type: data.event_type,
+      message: data.message,
+    });
+    if (error) throw new Error(error.message);
     return { success: true };
   });
 
@@ -79,65 +99,81 @@ export const adminLoginFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { password: string })
   .handler(async ({ data }) => {
     const adminPass = process.env.ADMIN_PASSWORD || "GJstudio#Cairo2026!Events";
-    if (data.password !== adminPass) {
-      throw new Error("Invalid password");
-    }
-    return { token: signToken() };
+    if (data.password !== adminPass) throw new Error("Invalid password");
+    return { token: await signToken() };
   });
 
 export const verifyAdminFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
-    return { valid: verifyToken(data.token) };
+    return { valid: await verifyToken(data.token) };
   });
 
 export const getBookingsFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
-    if (!verifyToken(data.token)) throw new Error("Unauthorized");
-    const { query } = await import("./db");
-    const result = await query(
-      `SELECT * FROM bookings ORDER BY created_at DESC`
-    );
-    return { bookings: result.rows as Booking[] };
+    if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { data: rows, error } = await sb
+      .from("bookings")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { bookings: (rows ?? []) as Booking[] };
   });
 
 export const getContactMessagesFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
-    if (!verifyToken(data.token)) throw new Error("Unauthorized");
-    const { query } = await import("./db");
-    const result = await query(
-      `SELECT * FROM contact_messages ORDER BY created_at DESC`
-    );
-    return { messages: result.rows as ContactMessage[] };
+    if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { data: rows, error } = await sb
+      .from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { messages: (rows ?? []) as ContactMessage[] };
   });
 
 export const updateBookingStatusFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string; id: number; status: string })
   .handler(async ({ data }) => {
-    if (!verifyToken(data.token)) throw new Error("Unauthorized");
+    if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
     const allowed = ["pending", "confirmed", "rejected"];
     if (!allowed.includes(data.status)) throw new Error("Invalid status");
-    const { query } = await import("./db");
-    await query(`UPDATE bookings SET status = $1 WHERE id = $2`, [data.status, data.id]);
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { error } = await sb
+      .from("bookings")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
     return { success: true };
   });
 
 export const deleteBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
-    if (!verifyToken(data.token)) throw new Error("Unauthorized");
-    const { query } = await import("./db");
-    await query(`DELETE FROM bookings WHERE id = $1`, [data.id]);
+    if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { error } = await sb.from("bookings").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
     return { success: true };
   });
 
 export const deleteContactMessageFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
-    if (!verifyToken(data.token)) throw new Error("Unauthorized");
-    const { query } = await import("./db");
-    await query(`DELETE FROM contact_messages WHERE id = $1`, [data.id]);
+    if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
+    const { getSupabase } = await import("./db");
+    const sb = getSupabase();
+    const { error } = await sb
+      .from("contact_messages")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
     return { success: true };
   });
