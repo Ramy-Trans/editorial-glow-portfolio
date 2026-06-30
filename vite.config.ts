@@ -4,7 +4,12 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-process.env.NITRO_PRESET ??= "node";
+// Auto-detect Cloudflare Pages build environment
+if (process.env.CF_PAGES) {
+  process.env.NITRO_PRESET = "cloudflare-pages";
+} else {
+  process.env.NITRO_PRESET ??= "node";
+}
 
 export default defineConfig({
   plugins: [

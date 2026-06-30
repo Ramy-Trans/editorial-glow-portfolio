@@ -83,8 +83,9 @@ function DashboardPage() {
       localStorage.setItem("gjstudio_admin_token", res.token);
       setToken(res.token);
       setPageState("dashboard");
-    } catch {
-      setLoginError("Incorrect password.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setLoginError(msg.includes("Invalid password") ? "Incorrect password." : `Error: ${msg}`);
     } finally {
       setLoginLoading(false);
     }
