@@ -1,1 +1,2 @@
 - [TanStack Start createServerFn API](tanstack-start-serverfn-api.md) — use `.inputValidator()` not `.validator()`; never place server fns in `src/server/` (Vite blocks it).
+- [Nitro cloudflare-pages process.env bug](nitro-cloudflare-pages-env.md) — cloudflare-pages preset omits `globalThis.__env__ = env` in fetch handler; process.env is always undefined without the patch in scripts/patch-nitro.js.
