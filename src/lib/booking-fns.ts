@@ -27,6 +27,8 @@ export interface ContactMessage extends ContactInput {
   created_at: string;
 }
 
+/* ── Helpers ───────────────────────────────────────────────── */
+
 async function hmacHex(secret: string, message: string): Promise<string> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -44,9 +46,7 @@ async function hmacHex(secret: string, message: string): Promise<string> {
 
 async function signToken(): Promise<string> {
   const ts = Date.now();
-  const cfEnv = (globalThis as any).__env__;
-  const secret =
-    process.env.ADMIN_SECRET ?? cfEnv?.ADMIN_SECRET ?? "fallback-secret";
+  const secret = process.env.ADMIN_SECRET ?? "gj-media-house-secret";
   const sig = await hmacHex(secret, `admin:${ts}`);
   return btoa(`admin:${ts}:${sig}`);
 }
@@ -54,18 +54,19 @@ async function signToken(): Promise<string> {
 async function verifyToken(token: string): Promise<boolean> {
   try {
     const decoded = atob(token);
-    const [, tsStr, sig] = decoded.split(":");
-    const ts = parseInt(tsStr, 10);
-    if (Date.now() - ts > 86_400_000) return false;
-    const cfEnv = (globalThis as any).__env__;
-    const secret =
-      process.env.ADMIN_SECRET ?? cfEnv?.ADMIN_SECRET ?? "fallback-secret";
+    const parts = decoded.split(":");
+    if (parts.length !== 3 || parts[0] !== "admin") return false;
+    const ts = parseInt(parts[1], 10);
+    if (isNaN(ts) || Date.now() - ts > 86_400_000) return false;
+    const secret = process.env.ADMIN_SECRET ?? "gj-media-house-secret";
     const expected = await hmacHex(secret, `admin:${ts}`);
-    return sig === expected;
+    return parts[2] === expected;
   } catch {
     return false;
   }
 }
+
+/* ── Public form submissions ───────────────────────────────── */
 
 export const submitBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as BookingInput)
@@ -99,15 +100,17 @@ export const submitContactFn = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+/* ── Admin auth ────────────────────────────────────────────── */
+
 export const adminLoginFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { password: string })
   .handler(async ({ data }) => {
-    const cfEnv = (globalThis as any).__env__;
+    // Falls back to the real password if ADMIN_PASSWORD env var is not set
     const adminPass =
-      process.env.ADMIN_PASSWORD ??
-      cfEnv?.ADMIN_PASSWORD ??
-      "GJstudio#Cairo2026!Events";
-    if (data.password !== adminPass) throw new Error("Invalid password");
+      process.env.ADMIN_PASSWORD ?? "GJstudio#5x2uivfd8RufEwXX!2026";
+    if (data.password !== adminPass) {
+      throw new Error("Incorrect password");
+    }
     return { token: await signToken() };
   });
 
@@ -116,6 +119,8 @@ export const verifyAdminFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     return { valid: await verifyToken(data.token) };
   });
+
+/* ── Admin data ────────────────────────────────────────────── */
 
 export const getBookingsFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
