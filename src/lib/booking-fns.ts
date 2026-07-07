@@ -27,7 +27,7 @@ export interface ContactMessage extends ContactInput {
   created_at: string;
 }
 
-/* ── Helpers ───────────────────────────────────────────────── */
+/* ── Auth helpers ──────────────────────────────────────────── */
 
 async function hmacHex(secret: string, message: string): Promise<string> {
   const enc = new TextEncoder();
@@ -66,37 +66,123 @@ async function verifyToken(token: string): Promise<boolean> {
   }
 }
 
+/* ── DB helpers (dual-path: Supabase HTTP or direct pg) ────── */
+
+async function queryBookings(): Promise<Booking[]> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    const { rows } = await pool.query(
+      "SELECT * FROM bookings ORDER BY created_at DESC"
+    );
+    return rows as Booking[];
+  }
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from("bookings")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Booking[];
+}
+
+async function queryMessages(): Promise<ContactMessage[]> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    const { rows } = await pool.query(
+      "SELECT * FROM contact_messages ORDER BY created_at DESC"
+    );
+    return rows as ContactMessage[];
+  }
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ContactMessage[];
+}
+
+async function insertBooking(data: BookingInput): Promise<void> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    await pool.query(
+      "INSERT INTO bookings (name, email, phone, occasion, description) VALUES ($1,$2,$3,$4,$5)",
+      [data.name, data.email, data.phone, data.occasion, data.description]
+    );
+    return;
+  }
+  const sb = getSupabase();
+  const { error } = await sb.from("bookings").insert(data);
+  if (error) throw new Error(error.message);
+}
+
+async function insertMessage(data: ContactInput): Promise<void> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    await pool.query(
+      "INSERT INTO contact_messages (name, email, phone, event_type, message) VALUES ($1,$2,$3,$4,$5)",
+      [data.name, data.email, data.phone, data.event_type, data.message]
+    );
+    return;
+  }
+  const sb = getSupabase();
+  const { error } = await sb.from("contact_messages").insert(data);
+  if (error) throw new Error(error.message);
+}
+
+async function updateStatus(id: number, status: string): Promise<void> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    await pool.query("UPDATE bookings SET status=$1 WHERE id=$2", [status, id]);
+    return;
+  }
+  const sb = getSupabase();
+  const { error } = await sb.from("bookings").update({ status }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+async function removeBooking(id: number): Promise<void> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    await pool.query("DELETE FROM bookings WHERE id=$1", [id]);
+    return;
+  }
+  const sb = getSupabase();
+  const { error } = await sb.from("bookings").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+async function removeMessage(id: number): Promise<void> {
+  const { useDirectPg, getPgPool, getSupabase } = await import("./db");
+  if (useDirectPg()) {
+    const pool = await getPgPool();
+    await pool.query("DELETE FROM contact_messages WHERE id=$1", [id]);
+    return;
+  }
+  const sb = getSupabase();
+  const { error } = await sb.from("contact_messages").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 /* ── Public form submissions ───────────────────────────────── */
 
 export const submitBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as BookingInput)
   .handler(async ({ data }) => {
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { error } = await sb.from("bookings").insert({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      occasion: data.occasion,
-      description: data.description,
-    });
-    if (error) throw new Error(error.message);
+    await insertBooking(data);
     return { success: true };
   });
 
 export const submitContactFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as ContactInput)
   .handler(async ({ data }) => {
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { error } = await sb.from("contact_messages").insert({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      event_type: data.event_type,
-      message: data.message,
-    });
-    if (error) throw new Error(error.message);
+    await insertMessage(data);
     return { success: true };
   });
 
@@ -105,7 +191,6 @@ export const submitContactFn = createServerFn({ method: "POST" })
 export const adminLoginFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { password: string })
   .handler(async ({ data }) => {
-    // Falls back to the real password if ADMIN_PASSWORD env var is not set
     const adminPass =
       process.env.ADMIN_PASSWORD ?? "GJstudio#5x2uivfd8RufEwXX!2026";
     if (data.password !== adminPass) {
@@ -126,28 +211,14 @@ export const getBookingsFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
     if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { data: rows, error } = await sb
-      .from("bookings")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { bookings: (rows ?? []) as Booking[] };
+    return { bookings: await queryBookings() };
   });
 
 export const getContactMessagesFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string })
   .handler(async ({ data }) => {
     if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { data: rows, error } = await sb
-      .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { messages: (rows ?? []) as ContactMessage[] };
+    return { messages: await queryMessages() };
   });
 
 export const updateBookingStatusFn = createServerFn({ method: "POST" })
@@ -156,13 +227,7 @@ export const updateBookingStatusFn = createServerFn({ method: "POST" })
     if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
     const allowed = ["pending", "confirmed", "rejected"];
     if (!allowed.includes(data.status)) throw new Error("Invalid status");
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { error } = await sb
-      .from("bookings")
-      .update({ status: data.status })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await updateStatus(data.id, data.status);
     return { success: true };
   });
 
@@ -170,10 +235,7 @@ export const deleteBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
     if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { error } = await sb.from("bookings").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await removeBooking(data.id);
     return { success: true };
   });
 
@@ -181,12 +243,6 @@ export const deleteContactMessageFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as { token: string; id: number })
   .handler(async ({ data }) => {
     if (!(await verifyToken(data.token))) throw new Error("Unauthorized");
-    const { getSupabase } = await import("./db");
-    const sb = getSupabase();
-    const { error } = await sb
-      .from("contact_messages")
-      .delete()
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await removeMessage(data.id);
     return { success: true };
   });
