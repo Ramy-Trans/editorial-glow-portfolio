@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Trash2, CheckCircle, XCircle, Clock, RefreshCw, MessageSquare, CalendarDays } from "lucide-react";
+import {
+  LogOut,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+  MessageSquare,
+  CalendarDays,
+} from "lucide-react";
 import {
   adminLoginFn,
   verifyAdminFn,
@@ -25,50 +34,71 @@ type PageState = "checking" | "login" | "dashboard";
 type Tab = "bookings" | "messages";
 
 const STATUS_CONFIG = {
-  pending:   { label: "Pending",   color: "text-amber-400 bg-amber-400/10 border-amber-400/30" },
-  confirmed: { label: "Confirmed", color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30" },
-  rejected:  { label: "Rejected",  color: "text-red-400 bg-red-400/10 border-red-400/30" },
+  pending: {
+    label: "Pending",
+    color: "text-amber-400 bg-amber-400/10 border-amber-400/30",
+  },
+  confirmed: {
+    label: "Confirmed",
+    color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "text-red-400 bg-red-400/10 border-red-400/30",
+  },
 } as const;
 
+const TOKEN_KEY = "gjstudio_admin_token";
+
 function DashboardPage() {
-  const [pageState, setPageState]       = useState<PageState>("checking");
-  const [token, setToken]               = useState<string | null>(null);
+  const [pageState, setPageState] = useState<PageState>("checking");
+  const [token, setToken] = useState<string | null>(null);
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError]     = useState("");
+  const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [bookings, setBookings]         = useState<Booking[]>([]);
-  const [messages, setMessages]         = useState<ContactMessage[]>([]);
-  const [loading, setLoading]           = useState(false);
-  const [actionMsg, setActionMsg]       = useState("");
-  const [tab, setTab]                   = useState<Tab>("bookings");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [actionMsg, setActionMsg] = useState("");
+  const [tab, setTab] = useState<Tab>("bookings");
 
   useEffect(() => {
-    const stored = localStorage.getItem("gjstudio_admin_token");
-    if (!stored) { setPageState("login"); return; }
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (!stored) {
+      setPageState("login");
+      return;
+    }
     verifyAdminFn({ data: { token: stored } })
       .then((res) => {
-        if (res.valid) { setToken(stored); setPageState("dashboard"); }
-        else { localStorage.removeItem("gjstudio_admin_token"); setPageState("login"); }
+        if (res.valid) {
+          setToken(stored);
+          setPageState("dashboard");
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+          setPageState("login");
+        }
       })
-      .catch(() => { localStorage.removeItem("gjstudio_admin_token"); setPageState("login"); });
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        setPageState("login");
+      });
   }, []);
 
   useEffect(() => {
-    if (pageState === "dashboard" && token) fetchAll();
+    if (pageState === "dashboard" && token) fetchAll(token);
   }, [pageState, token]);
 
-  async function fetchAll() {
-    if (!token) return;
+  async function fetchAll(tok: string) {
     setLoading(true);
     try {
       const [b, m] = await Promise.all([
-        getBookingsFn({ data: { token } }),
-        getContactMessagesFn({ data: { token } }),
+        getBookingsFn({ data: { token: tok } }),
+        getContactMessagesFn({ data: { token: tok } }),
       ]);
       setBookings(b.bookings);
       setMessages(m.messages);
-    } catch {
-      setActionMsg("Failed to load data.");
+    } catch (err: unknown) {
+      flash(err instanceof Error ? err.message : "Failed to load data.");
     } finally {
       setLoading(false);
     }
@@ -80,20 +110,31 @@ function DashboardPage() {
     setLoginError("");
     try {
       const res = await adminLoginFn({ data: { password: loginPassword } });
-      localStorage.setItem("gjstudio_admin_token", res.token);
+      localStorage.setItem(TOKEN_KEY, res.token);
       setToken(res.token);
       setPageState("dashboard");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setLoginError(msg.includes("Invalid password") ? "Incorrect password." : `Error: ${msg}`);
+      // Extract the real message from TanStack's wrapped error
+      let msg = "Login failed";
+      if (err instanceof Error) {
+        msg = err.message;
+      } else if (typeof err === "string") {
+        msg = err;
+      }
+      // TanStack Start wraps errors — pull the inner message out
+      const match = msg.match(/["']?message["']?\s*:\s*["']([^"']+)["']/i);
+      if (match) msg = match[1];
+      setLoginError(msg);
     } finally {
       setLoginLoading(false);
     }
   }
 
   function handleLogout() {
-    localStorage.removeItem("gjstudio_admin_token");
-    setToken(null); setBookings([]); setMessages([]);
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setBookings([]);
+    setMessages([]);
     setPageState("login");
   }
 
@@ -103,7 +144,9 @@ function DashboardPage() {
       await updateBookingStatusFn({ data: { token, id, status } });
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
       flash("Status updated.");
-    } catch { flash("Failed to update status."); }
+    } catch {
+      flash("Failed to update status.");
+    }
   }
 
   async function handleDeleteBooking(id: number) {
@@ -112,7 +155,9 @@ function DashboardPage() {
       await deleteBookingFn({ data: { token, id } });
       setBookings((prev) => prev.filter((b) => b.id !== id));
       flash("Booking deleted.");
-    } catch { flash("Failed to delete booking."); }
+    } catch {
+      flash("Failed to delete booking.");
+    }
   }
 
   async function handleDeleteMessage(id: number) {
@@ -121,15 +166,17 @@ function DashboardPage() {
       await deleteContactMessageFn({ data: { token, id } });
       setMessages((prev) => prev.filter((m) => m.id !== id));
       flash("Message deleted.");
-    } catch { flash("Failed to delete message."); }
+    } catch {
+      flash("Failed to delete message.");
+    }
   }
 
   function flash(msg: string) {
     setActionMsg(msg);
-    setTimeout(() => setActionMsg(""), 2500);
+    setTimeout(() => setActionMsg(""), 3000);
   }
 
-  /* ── Loading check ── */
+  /* ── Checking auth ── */
   if (pageState === "checking") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -152,11 +199,15 @@ function DashboardPage() {
             <div className="font-display text-3xl font-extrabold tracking-tight">
               GJ<span className="text-gold"> Media</span> House
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Media House Dashboard — Admin Access</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Media House Dashboard — Admin Access
+            </p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Password</label>
+              <label className="mb-1.5 block text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                Password
+              </label>
               <input
                 type="password"
                 value={loginPassword}
@@ -169,7 +220,12 @@ function DashboardPage() {
             </div>
             <AnimatePresence>
               {loginError && (
-                <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-xs text-red-400">
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs text-red-400"
+                >
                   {loginError}
                 </motion.p>
               )}
@@ -189,10 +245,10 @@ function DashboardPage() {
 
   /* ── Dashboard ── */
   const stats = {
-    bookings:  bookings.length,
-    pending:   bookings.filter((b) => b.status === "pending").length,
+    bookings: bookings.length,
+    pending: bookings.filter((b) => b.status === "pending").length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    messages:  messages.length,
+    messages: messages.length,
   };
 
   return (
@@ -206,7 +262,7 @@ function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={fetchAll}
+              onClick={() => token && fetchAll(token)}
               className="flex items-center gap-1.5 border border-white/10 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-gold hover:text-gold"
             >
               <RefreshCw className="h-3 w-3" />
@@ -227,14 +283,16 @@ function DashboardPage() {
         {/* Stats */}
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {[
-            { label: "Bookings",  val: stats.bookings,  color: "text-foreground" },
-            { label: "Pending",   val: stats.pending,   color: "text-amber-400" },
+            { label: "Bookings", val: stats.bookings, color: "text-foreground" },
+            { label: "Pending", val: stats.pending, color: "text-amber-400" },
             { label: "Confirmed", val: stats.confirmed, color: "text-emerald-400" },
-            { label: "Messages",  val: stats.messages,  color: "text-gold" },
+            { label: "Messages", val: stats.messages, color: "text-gold" },
           ].map((s) => (
             <div key={s.label} className="border border-white/5 bg-charcoal px-6 py-5">
               <div className={`font-display text-4xl font-extrabold ${s.color}`}>{s.val}</div>
-              <div className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{s.label}</div>
+              <div className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                {s.label}
+              </div>
             </div>
           ))}
         </div>
@@ -243,7 +301,9 @@ function DashboardPage() {
         <AnimatePresence>
           {actionMsg && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               className="mb-4 border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-gold"
             >
               {actionMsg}
@@ -253,10 +313,12 @@ function DashboardPage() {
 
         {/* Tabs */}
         <div className="mb-0 flex border-b border-white/5">
-          {([
-            { key: "bookings" as Tab, label: "Booking Inquiries", icon: CalendarDays, count: stats.bookings },
-            { key: "messages" as Tab, label: "Contact Messages",  icon: MessageSquare,  count: stats.messages },
-          ]).map(({ key, label, icon: Icon, count }) => (
+          {(
+            [
+              { key: "bookings" as Tab, label: "Booking Inquiries", icon: CalendarDays, count: stats.bookings },
+              { key: "messages" as Tab, label: "Contact Messages", icon: MessageSquare, count: stats.messages },
+            ] as const
+          ).map(({ key, label, icon: Icon, count }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -268,7 +330,11 @@ function DashboardPage() {
             >
               <Icon className="h-3.5 w-3.5" />
               {label}
-              <span className={`ml-1 rounded-sm px-1.5 py-0.5 text-[10px] ${tab === key ? "bg-gold/20 text-gold" : "bg-white/5 text-muted-foreground"}`}>
+              <span
+                className={`ml-1 rounded-sm px-1.5 py-0.5 text-[10px] ${
+                  tab === key ? "bg-gold/20 text-gold" : "bg-white/5 text-muted-foreground"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -283,24 +349,36 @@ function DashboardPage() {
             </div>
           ) : tab === "bookings" ? (
             bookings.length === 0 ? (
-              <div className="py-20 text-center text-sm text-muted-foreground">No booking inquiries yet.</div>
+              <div className="py-20 text-center text-sm text-muted-foreground">
+                No booking inquiries yet.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[800px] text-sm">
                   <thead>
                     <tr className="border-b border-white/5 text-left">
-                      {["#", "Name", "Contact", "Occasion", "Description", "Date", "Status", "Actions"].map((h) => (
-                        <th key={h} className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{h}</th>
-                      ))}
+                      {["#", "Name", "Contact", "Occasion", "Description", "Date", "Status", "Actions"].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                          >
+                            {h}
+                          </th>
+                        )
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {bookings.map((b, idx) => {
-                      const sc = STATUS_CONFIG[b.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.pending;
+                      const sc =
+                        STATUS_CONFIG[b.status as keyof typeof STATUS_CONFIG] ??
+                        STATUS_CONFIG.pending;
                       return (
                         <motion.tr
                           key={b.id}
-                          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.04 }}
                           className="border-b border-white/5 transition-colors hover:bg-white/[0.02]"
                         >
@@ -312,22 +390,54 @@ function DashboardPage() {
                           </td>
                           <td className="px-4 py-4">{b.occasion}</td>
                           <td className="max-w-[200px] px-4 py-4">
-                            <p className="line-clamp-2 text-xs text-muted-foreground">{b.description || "—"}</p>
+                            <p className="line-clamp-2 text-xs text-muted-foreground">
+                              {b.description || "—"}
+                            </p>
                           </td>
                           <td className="px-4 py-4 text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(b.created_at).toLocaleDateString("en-EG", { day: "numeric", month: "short", year: "numeric" })}
+                            {new Date(b.created_at).toLocaleDateString("en-EG", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
                           </td>
                           <td className="px-4 py-4">
-                            <span className={`inline-block border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] ${sc.color}`}>
+                            <span
+                              className={`inline-block border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] ${sc.color}`}
+                            >
                               {sc.label}
                             </span>
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleStatusChange(b.id, "confirmed")} title="Confirm" className="text-emerald-400 transition-opacity hover:opacity-70"><CheckCircle className="h-4 w-4" /></button>
-                              <button onClick={() => handleStatusChange(b.id, "pending")}   title="Set Pending" className="text-amber-400 transition-opacity hover:opacity-70"><Clock className="h-4 w-4" /></button>
-                              <button onClick={() => handleStatusChange(b.id, "rejected")}  title="Reject" className="text-red-400 transition-opacity hover:opacity-70"><XCircle className="h-4 w-4" /></button>
-                              <button onClick={() => handleDeleteBooking(b.id)} title="Delete" className="text-muted-foreground transition-colors hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+                              <button
+                                onClick={() => handleStatusChange(b.id, "confirmed")}
+                                title="Confirm"
+                                className="text-emerald-400 transition-opacity hover:opacity-70"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(b.id, "pending")}
+                                title="Set Pending"
+                                className="text-amber-400 transition-opacity hover:opacity-70"
+                              >
+                                <Clock className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(b.id, "rejected")}
+                                title="Reject"
+                                className="text-red-400 transition-opacity hover:opacity-70"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBooking(b.id)}
+                                title="Delete"
+                                className="text-muted-foreground transition-colors hover:text-red-400"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
                           </td>
                         </motion.tr>
@@ -337,52 +447,67 @@ function DashboardPage() {
                 </table>
               </div>
             )
+          ) : messages.length === 0 ? (
+            <div className="py-20 text-center text-sm text-muted-foreground">
+              No contact messages yet.
+            </div>
           ) : (
-            /* Contact messages tab */
-            messages.length === 0 ? (
-              <div className="py-20 text-center text-sm text-muted-foreground">No contact messages yet.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] text-sm">
-                  <thead>
-                    <tr className="border-b border-white/5 text-left">
-                      {["#", "Name", "Contact", "Event Type", "Message", "Date", "Actions"].map((h) => (
-                        <th key={h} className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {messages.map((m, idx) => (
-                      <motion.tr
-                        key={m.id}
-                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.04 }}
-                        className="border-b border-white/5 transition-colors hover:bg-white/[0.02]"
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead>
+                  <tr className="border-b border-white/5 text-left">
+                    {["#", "Name", "Contact", "Event Type", "Message", "Date", "Actions"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
                       >
-                        <td className="px-4 py-4 text-muted-foreground">{m.id}</td>
-                        <td className="px-4 py-4 font-medium">{m.name}</td>
-                        <td className="px-4 py-4">
-                          <div className="text-xs text-muted-foreground">{m.email}</div>
-                          <div className="text-xs text-muted-foreground">{m.phone}</div>
-                        </td>
-                        <td className="px-4 py-4 text-xs">{m.event_type || "—"}</td>
-                        <td className="max-w-[240px] px-4 py-4">
-                          <p className="line-clamp-3 text-xs text-muted-foreground">{m.message || "—"}</p>
-                        </td>
-                        <td className="px-4 py-4 text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(m.created_at).toLocaleDateString("en-EG", { day: "numeric", month: "short", year: "numeric" })}
-                        </td>
-                        <td className="px-4 py-4">
-                          <button onClick={() => handleDeleteMessage(m.id)} title="Delete" className="text-muted-foreground transition-colors hover:text-red-400">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </motion.tr>
+                        {h}
+                      </th>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )
+                  </tr>
+                </thead>
+                <tbody>
+                  {messages.map((m, idx) => (
+                    <motion.tr
+                      key={m.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.04 }}
+                      className="border-b border-white/5 transition-colors hover:bg-white/[0.02]"
+                    >
+                      <td className="px-4 py-4 text-muted-foreground">{m.id}</td>
+                      <td className="px-4 py-4 font-medium">{m.name}</td>
+                      <td className="px-4 py-4">
+                        <div className="text-xs text-muted-foreground">{m.email}</div>
+                        <div className="text-xs text-muted-foreground">{m.phone}</div>
+                      </td>
+                      <td className="px-4 py-4 text-xs">{m.event_type || "—"}</td>
+                      <td className="max-w-[240px] px-4 py-4">
+                        <p className="line-clamp-3 text-xs text-muted-foreground">
+                          {m.message || "—"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(m.created_at).toLocaleDateString("en-EG", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={() => handleDeleteMessage(m.id)}
+                          title="Delete"
+                          className="text-muted-foreground transition-colors hover:text-red-400"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </main>
