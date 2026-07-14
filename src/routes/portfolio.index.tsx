@@ -75,11 +75,6 @@ function VideoCard({ item, i }: { item: typeof portfolio[0]; i: number }) {
               View Project <ArrowRight className="h-3.5 w-3.5" />
             </div>
           </div>
-          {item.featured && (
-            <div className="absolute left-3 top-3 bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.25em] text-background">
-              Featured
-            </div>
-          )}
           {item.coverVideo && (
             <div className="absolute right-3 top-3 flex items-center gap-1 border border-gold/40 bg-background/60 px-2 py-1 text-[9px] uppercase tracking-[0.2em] text-gold backdrop-blur-sm opacity-100 group-hover:opacity-0 transition-opacity">
               ▶ Promo

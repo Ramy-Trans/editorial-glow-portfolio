@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, Instagram, Facebook, Clock } from "lucide-react";
+import { Mail, MapPin, Phone, Instagram, Facebook, Linkedin, Clock } from "lucide-react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
@@ -139,7 +139,7 @@ function ContactPage() {
                     {[
                       { label: "Instagram", icon: Instagram, href: siteSettings.instagram },
                       { label: "Facebook", icon: Facebook, href: siteSettings.facebook },
-                      { label: "Behance", icon: null, href: siteSettings.behance },
+                      { label: "LinkedIn", icon: Linkedin, href: siteSettings.linkedin },
                     ].map((s) => (
                       <a
                         key={s.label}
@@ -149,7 +149,7 @@ function ContactPage() {
                         rel="noopener noreferrer"
                         className="flex h-11 w-11 items-center justify-center border border-white/10 text-muted-foreground transition-all hover:border-gold hover:text-gold"
                       >
-                        {s.icon ? <s.icon className="h-4 w-4" /> : <span className="font-display text-xs font-extrabold">Bē</span>}
+                        <s.icon className="h-4 w-4" />
                       </a>
                     ))}
                   </div>

@@ -1,4 +1,4 @@
-import { Instagram, Facebook } from "lucide-react";
+import { Instagram, Facebook, Linkedin } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { siteSettings } from "@/data/settings";
 
@@ -26,9 +26,7 @@ export function Footer() {
             <div className="mt-6 flex items-center gap-3">
               <SocialLink label="Instagram" href={siteSettings.instagram}><Instagram className="h-4 w-4" /></SocialLink>
               <SocialLink label="Facebook" href={siteSettings.facebook}><Facebook className="h-4 w-4" /></SocialLink>
-              <SocialLink label="Behance" href={siteSettings.behance}>
-                <span className="font-display text-xs font-extrabold">Bē</span>
-              </SocialLink>
+              <SocialLink label="LinkedIn" href={siteSettings.linkedin}><Linkedin className="h-4 w-4" /></SocialLink>
             </div>
           </div>
 

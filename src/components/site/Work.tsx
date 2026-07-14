@@ -76,11 +76,6 @@ function PortfolioCard({ item, i }: { item: typeof portfolio[0]; i: number }) {
           ↗
         </span>
       </div>
-      {item.featured && (
-        <div className="absolute left-4 top-4 z-20 pointer-events-none bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.25em] text-background">
-          Featured
-        </div>
-      )}
     </motion.div>
   );
 }
@@ -89,7 +84,7 @@ export function Work() {
   return (
     <section id="work" className="relative border-t border-white/5 bg-charcoal py-28 md:py-40">
       <div className="mx-auto max-w-[1600px] px-6 md:px-12">
-        <SectionLabel label="Featured Work" />
+        <SectionLabel label="Our Work" />
         <Reveal>
           <h2 className="mb-12 font-display text-5xl font-extrabold leading-[0.95] tracking-tight md:text-7xl">
             Selected{" "}

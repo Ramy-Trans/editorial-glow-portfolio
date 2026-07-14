@@ -33,8 +33,18 @@ Visit `/dashboard` — password protected via `ADMIN_PASSWORD` secret.
 - `ADMIN_SECRET` — HMAC signing key for admin tokens
 - `DATABASE_URL` — auto-provided by Replit PostgreSQL
 
+## Database Path Selection
+
+`src/lib/db.ts` picks Supabase HTTP vs. direct `pg` based on whether
+`SUPABASE_SERVICE_ROLE_KEY` is set. On Replit (no Supabase key), it connects
+directly to Replit's Postgres via `DATABASE_URL`. The `bookings` and
+`contact_messages` tables (see `database/schema.sql`) must exist in whichever
+database is active — already created here.
+
 ## User Preferences
 
 - Use Bun (not npm) for package management and running scripts
 - Video files go in `/public/` as `drone-promo.mp4` / `drone-promo.webm`
 - Keep Netlify/Vercel config files for reference but deploy via Replit
+- Social links live in `src/data/settings.ts` (Instagram, Facebook, LinkedIn — Behance was replaced with LinkedIn)
+- "Featured" badges were intentionally removed from all portfolio cards (Work.tsx, portfolio.index.tsx)
