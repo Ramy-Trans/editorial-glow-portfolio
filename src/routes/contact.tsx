@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, Instagram, Facebook, Linkedin, Clock } from "lucide-react";
+import { MapPin, Phone, Instagram, Facebook, Linkedin, Clock } from "lucide-react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
@@ -87,7 +87,6 @@ function ContactPage() {
 
               <div className="mt-12 space-y-6">
                 {[
-                  { icon: Mail, label: "Email", val: siteSettings.email, href: `mailto:${siteSettings.email}` },
                   { icon: Phone, label: "Phone", val: siteSettings.phone, href: `tel:${siteSettings.phone}` },
                   { icon: MapPin, label: "Studio", val: siteSettings.locations.join(" · "), href: null },
                 ].map((c, i) => (

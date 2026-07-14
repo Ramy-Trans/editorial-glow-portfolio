@@ -91,7 +91,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           </nav>
 
           <div className="px-8 py-8 text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-            {siteSettings.email}
+            {siteSettings.phone}
           </div>
         </motion.div>
       )}

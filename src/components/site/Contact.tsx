@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Reveal } from "./Reveal";
 import { SectionLabel } from "./SectionLabel";
-import { Mail, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { siteSettings } from "@/data/settings";
 import { useLang } from "@/lib/i18n";
@@ -55,7 +55,6 @@ export function Contact() {
 
             <div className="mt-12 space-y-6">
               {[
-                { icon: Mail, label: t("contact_email_label"), val: siteSettings.email, href: `mailto:${siteSettings.email}` },
                 { icon: Phone, label: t("contact_phone_label"), val: siteSettings.phone, href: `tel:${siteSettings.phone.replace(/\s/g, "")}` },
               ].map((c, i) => (
                 <Reveal key={c.label} delay={0.15 + i * 0.05}>

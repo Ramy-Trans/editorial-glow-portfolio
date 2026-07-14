@@ -48,9 +48,6 @@ export function Footer() {
           <div className="md:col-span-3 md:col-start-9">
             <div className="mb-4 text-[10px] uppercase tracking-[0.4em] text-gold">Contact</div>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <a href={`mailto:${siteSettings.email}`} className="block transition-colors hover:text-gold">
-                {siteSettings.email}
-              </a>
               <a href={`tel:${siteSettings.phone}`} className="block transition-colors hover:text-gold">
                 {siteSettings.phone}
               </a>
