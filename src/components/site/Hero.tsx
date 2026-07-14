@@ -20,7 +20,7 @@ export function Hero() {
     const vid = mobileVideoRef.current;
     if (!vid) return;
     vid.muted = true;
-    vid.play().catch(() => {});
+    vid.play().catch((err) => console.debug("[Hero] autoplay blocked:", err));
   }, []);
 
   return (

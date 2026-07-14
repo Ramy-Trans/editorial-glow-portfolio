@@ -21,7 +21,8 @@ function VideoCard({ item, i }: { item: typeof portfolio[0]; i: number }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleMouseEnter = () => {
-    if (videoRef.current) videoRef.current.play().catch(() => {});
+    if (videoRef.current)
+      videoRef.current.play().catch((err) => console.debug("[portfolio] autoplay blocked:", err));
   };
   const handleMouseLeave = () => {
     if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }

@@ -17,6 +17,7 @@ export function Contact() {
     message: "",
   });
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [error, setError] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -24,14 +25,31 @@ export function Contact() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name || !form.email) return;
+    setError("");
+
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("name");
+    if (!form.email.trim()) missing.push("email");
+    if (missing.length > 0) {
+      setError(`Please fill in: ${missing.join(", ")}.`);
+      return;
+    }
+    // Basic email shape check — the native `type="email"` input is a soft
+    // hint only (form has noValidate), so this is the real guard.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setStatus("sending");
     try {
       await submitContactFn({ data: form });
       setStatus("sent");
       setForm({ name: "", email: "", phone: "", event_type: "", message: "" });
-    } catch {
+    } catch (err) {
+      console.error("[Contact] submitContactFn threw:", err);
       setStatus("error");
+      setError("Something went wrong sending your message. Please try again or use WhatsApp.");
     }
   }
 
@@ -127,7 +145,7 @@ export function Contact() {
                       </button>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} noValidate>
                       <div className="grid gap-6 md:grid-cols-2">
                         <ContactField label="Name" name="name" placeholder="Your Name" value={form.name} onChange={handleChange} required />
                         <ContactField label="Email" name="email" type="email" placeholder="hello@example.com" value={form.email} onChange={handleChange} required />
@@ -146,6 +164,11 @@ export function Contact() {
                             className="w-full resize-none border-b border-white/15 bg-transparent py-3 text-base text-foreground placeholder:text-white/30 focus:border-gold focus:outline-none"
                           />
                         </div>
+                        {error && (
+                          <div className="md:col-span-2">
+                            <p className="text-sm text-red-400">{error}</p>
+                          </div>
+                        )}
                         <div className="md:col-span-2 mt-2 flex items-center gap-4">
                           <button
                             type="submit"
@@ -157,9 +180,6 @@ export function Contact() {
                               <span className="transition-transform group-hover:translate-x-1">→</span>
                             )}
                           </button>
-                          {status === "error" && (
-                            <p className="text-xs text-red-400">Something went wrong — please try again.</p>
-                          )}
                         </div>
                       </div>
                     </form>

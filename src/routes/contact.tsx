@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Phone, Instagram, Facebook, Linkedin, Clock } from "lucide-react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionLabel } from "@/components/site/SectionLabel";
 import { siteSettings } from "@/data/settings";
+import { submitContactFn } from "@/lib/booking-fns";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -18,13 +19,78 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone: string;
+  type: string;
+  budget: string;
+  date: string;
+  message: string;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
+function ContactPage() {
+  const [form, setForm] = useState<ContactFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    type: "",
+    budget: "",
+    date: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const update = (field: keyof ContactFormData, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
-  };
+    setError("");
+
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("name");
+    if (!form.email.trim()) missing.push("email");
+    if (missing.length > 0) {
+      setError(`Please fill in: ${missing.join(", ")}.`);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Project type/budget/date aren't stored as their own columns — fold
+    // them into the free-text message so nothing the visitor typed is lost.
+    const extras = [
+      form.date && `Preferred date: ${form.date}`,
+      form.budget && `Budget: ${form.budget}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const message = [extras, form.message].filter(Boolean).join("\n\n");
+
+    setLoading(true);
+    try {
+      await submitContactFn({
+        data: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          event_type: form.type,
+          message,
+        },
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error("[contact] submitContactFn threw:", err);
+      setError("Something went wrong sending your message. Please try again or contact us directly.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="relative bg-background text-foreground">
@@ -198,7 +264,10 @@ function ContactPage() {
                       Thank you for reaching out. I'll be in touch within 24–48 hours.
                     </p>
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={() => {
+                        setSubmitted(false);
+                        setForm({ name: "", email: "", phone: "", type: "", budget: "", date: "", message: "" });
+                      }}
                       className="mt-8 border border-white/15 px-8 py-3 text-sm uppercase tracking-[0.2em] text-muted-foreground transition-all hover:border-gold hover:text-gold"
                     >
                       Send Another Message
@@ -207,6 +276,7 @@ function ContactPage() {
                 ) : (
                   <form
                     onSubmit={handleSubmit}
+                    noValidate
                     className="relative overflow-hidden border border-white/10 bg-charcoal/40 p-8 backdrop-blur-xl md:p-12"
                   >
                     <div
@@ -214,12 +284,12 @@ function ContactPage() {
                       className="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-gold/10 blur-3xl"
                     />
                     <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <Field label="Full Name" name="name" placeholder="Jane Doe" required />
-                      <Field label="Email Address" name="email" type="email" placeholder="hello@example.com" required />
-                      <Field label="Phone Number" name="phone" type="tel" placeholder="+1 555 000 000" />
-                      <Field label="Project Type" name="type" placeholder="Wedding / Editorial / Brand" />
-                      <Field label="Budget Range" name="budget" placeholder="€ 2,000 — 5,000" />
-                      <Field label="Preferred Date" name="date" type="date" />
+                      <Field label="Full Name" name="name" placeholder="Jane Doe" required value={form.name} onChange={(e) => update("name", e.target.value)} />
+                      <Field label="Email Address" name="email" type="email" placeholder="hello@example.com" required value={form.email} onChange={(e) => update("email", e.target.value)} />
+                      <Field label="Phone Number" name="phone" type="tel" placeholder="+1 555 000 000" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+                      <Field label="Project Type" name="type" placeholder="Wedding / Editorial / Brand" value={form.type} onChange={(e) => update("type", e.target.value)} />
+                      <Field label="Budget Range" name="budget" placeholder="€ 2,000 — 5,000" value={form.budget} onChange={(e) => update("budget", e.target.value)} />
+                      <Field label="Preferred Date" name="date" type="date" value={form.date} onChange={(e) => update("date", e.target.value)} />
                       <div className="md:col-span-2">
                         <label className="mb-3 block text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Tell Me About Your Vision
@@ -228,16 +298,33 @@ function ContactPage() {
                           name="message"
                           rows={6}
                           placeholder="Describe your project, vision, or any relevant details…"
+                          value={form.message}
+                          onChange={(e) => update("message", e.target.value)}
                           className="w-full resize-none border-b border-white/15 bg-transparent py-3 text-base text-foreground placeholder:text-white/30 focus:border-gold focus:outline-none"
                         />
                       </div>
+                      <AnimatePresence>
+                        {error && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="md:col-span-2"
+                          >
+                            <p className="text-sm text-red-400">{error}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                       <div className="md:col-span-2 mt-4">
                         <button
                           type="submit"
-                          className="group inline-flex w-full items-center justify-center gap-3 bg-gold px-10 py-5 text-sm font-semibold uppercase tracking-[0.2em] text-gold-foreground transition-transform hover:scale-[1.01] md:w-auto"
+                          disabled={loading}
+                          className="group inline-flex w-full items-center justify-center gap-3 bg-gold px-10 py-5 text-sm font-semibold uppercase tracking-[0.2em] text-gold-foreground transition-transform hover:scale-[1.01] disabled:opacity-60 md:w-auto"
                         >
-                          Send Message
-                          <span className="transition-transform group-hover:translate-x-1">→</span>
+                          {loading ? "Sending…" : "Send Message"}
+                          {!loading && (
+                            <span className="transition-transform group-hover:translate-x-1">→</span>
+                          )}
                         </button>
                         <p className="mt-4 text-[11px] text-muted-foreground">
                           Prefer to book directly?{" "}
@@ -266,12 +353,16 @@ function Field({
   type = "text",
   placeholder,
   required,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <div>
@@ -284,6 +375,8 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
+        value={value}
+        onChange={onChange}
         className="w-full border-b border-white/15 bg-transparent py-3 text-base text-foreground placeholder:text-white/30 focus:border-gold focus:outline-none [color-scheme:dark]"
       />
     </div>

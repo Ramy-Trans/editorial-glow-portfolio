@@ -61,7 +61,8 @@ async function verifyToken(token: string): Promise<boolean> {
     const secret = process.env.ADMIN_SECRET ?? "gj-media-house-secret";
     const expected = await hmacHex(secret, `admin:${ts}`);
     return parts[2] === expected;
-  } catch {
+  } catch (err) {
+    console.error("[verifyToken] malformed/invalid token:", err);
     return false;
   }
 }

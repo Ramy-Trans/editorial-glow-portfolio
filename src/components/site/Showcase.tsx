@@ -11,7 +11,7 @@ export function Showcase() {
     const vid = videoRef.current;
     if (!vid) return;
     if (isInView) {
-      vid.play().catch(() => {});
+      vid.play().catch((err) => console.debug("[Showcase] autoplay blocked:", err));
     } else {
       vid.pause();
     }

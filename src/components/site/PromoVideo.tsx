@@ -15,7 +15,7 @@ export function PromoVideo() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          vid.play().catch(() => {});
+          vid.play().catch((err) => console.debug("[PromoVideo] autoplay blocked:", err));
         } else {
           vid.pause();
         }

@@ -78,7 +78,8 @@ function DashboardPage() {
           setPageState("login");
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("[dashboard] verifyAdminFn threw:", err);
         localStorage.removeItem(TOKEN_KEY);
         setPageState("login");
       });
@@ -144,7 +145,8 @@ function DashboardPage() {
       await updateBookingStatusFn({ data: { token, id, status } });
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
       flash("Status updated.");
-    } catch {
+    } catch (err) {
+      console.error("[dashboard] updateBookingStatusFn threw:", err);
       flash("Failed to update status.");
     }
   }
@@ -155,7 +157,8 @@ function DashboardPage() {
       await deleteBookingFn({ data: { token, id } });
       setBookings((prev) => prev.filter((b) => b.id !== id));
       flash("Booking deleted.");
-    } catch {
+    } catch (err) {
+      console.error("[dashboard] deleteBookingFn threw:", err);
       flash("Failed to delete booking.");
     }
   }
@@ -166,7 +169,8 @@ function DashboardPage() {
       await deleteContactMessageFn({ data: { token, id } });
       setMessages((prev) => prev.filter((m) => m.id !== id));
       flash("Message deleted.");
-    } catch {
+    } catch (err) {
+      console.error("[dashboard] deleteContactMessageFn threw:", err);
       flash("Failed to delete message.");
     }
   }
