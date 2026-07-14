@@ -175,15 +175,25 @@ async function removeMessage(id: number): Promise<void> {
 export const submitBookingFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as BookingInput)
   .handler(async ({ data }) => {
-    await insertBooking(data);
-    return { success: true };
+    try {
+      await insertBooking(data);
+      return { success: true };
+    } catch (err) {
+      console.error("[submitBookingFn] failed:", err);
+      throw err;
+    }
   });
 
 export const submitContactFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => d as ContactInput)
   .handler(async ({ data }) => {
-    await insertMessage(data);
-    return { success: true };
+    try {
+      await insertMessage(data);
+      return { success: true };
+    } catch (err) {
+      console.error("[submitContactFn] failed:", err);
+      throw err;
+    }
   });
 
 /* ── Admin auth ────────────────────────────────────────────── */

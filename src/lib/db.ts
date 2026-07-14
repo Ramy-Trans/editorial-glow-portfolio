@@ -22,18 +22,31 @@ export function useDirectPg(): boolean {
   return !SUPABASE_KEY && !!PG_CONNECTION_STRING;
 }
 
-let _pool: import("pg").Pool | null = null;
+// Cache the pool on `globalThis` (not just a module-level variable) so Vite's
+// dev-server HMR — which re-evaluates this module on every edit — reuses the
+// same pool instead of creating a new one and leaking the old one's
+// connections until the DB's connection limit is exhausted.
+declare global {
+  // eslint-disable-next-line no-var
+  var __gjPgPool: import("pg").Pool | undefined;
+}
 
 export async function getPgPool(): Promise<import("pg").Pool> {
-  if (_pool) return _pool;
+  if (globalThis.__gjPgPool) return globalThis.__gjPgPool;
   const { Pool } = await import("pg");
   const isReplitDb = !!process.env.DATABASE_URL && !process.env.SUPABASE_DATABASE_URL;
-  _pool = new Pool({
+  const pool = new Pool({
     connectionString: PG_CONNECTION_STRING,
     // Replit's managed Postgres doesn't need/accept the relaxed Supabase SSL
     // settings; only apply them when actually talking to Supabase's pooler.
     ssl: isReplitDb ? undefined : { rejectUnauthorized: false },
     max: 5,
   });
-  return _pool;
+  pool.on("error", (err) => {
+    // Prevent an idle client error (e.g. a dropped connection) from crashing
+    // the whole process — log it and let the pool recover on next use.
+    console.error("[db] Unexpected pg pool error:", err);
+  });
+  globalThis.__gjPgPool = pool;
+  return pool;
 }
