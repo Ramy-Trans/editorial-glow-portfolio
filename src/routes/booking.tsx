@@ -60,12 +60,28 @@ function BookingPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push(isRTL ? "الاسم" : "name");
+    if (!form.email.trim()) missing.push(isRTL ? "البريد الإلكتروني" : "email");
+    if (!form.phone.trim()) missing.push(isRTL ? "رقم الهاتف" : "phone");
+    if (!form.occasion) missing.push(isRTL ? "نوع المناسبة" : "occasion type");
+    if (missing.length > 0) {
+      setError(
+        isRTL
+          ? `يرجى إكمال الحقول التالية: ${missing.join("، ")}.`
+          : `Please fill in: ${missing.join(", ")}.`
+      );
+      return;
+    }
+
+    setLoading(true);
     try {
       await submitBookingFn({ data: form });
       setSubmitted(true);
-    } catch {
+    } catch (err) {
+      console.error("[booking] submitBookingFn threw:", err);
       setError("Something went wrong. Please try again or contact us directly on WhatsApp.");
     } finally {
       setLoading(false);
@@ -155,7 +171,7 @@ function BookingPage() {
                 </Reveal>
 
                 <Reveal delay={0.15}>
-                  <form onSubmit={handleSubmit} className="mt-12 space-y-6">
+                  <form onSubmit={handleSubmit} noValidate className="mt-12 space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
                       <Field label={t("booking_name")}>
                         <input
