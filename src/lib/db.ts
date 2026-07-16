@@ -1,11 +1,19 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ?? "https://uavivgjpfuddrivsmptv.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+// ---------------------------------------------------------------------------
+// IMPORTANT: Do NOT read process.env at module level.
+//
+// On Cloudflare Pages the Nitro fetch handler sets `globalThis.__env__ = env`
+// as the very first thing it does, but module-level code runs once at isolate
+// boot — before any request arrives — so module-level `process.env.*` reads
+// always return undefined there.  Reading inside functions guarantees we pick
+// up the live env binding on every invocation.
+// ---------------------------------------------------------------------------
 
 export function getSupabase(): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_KEY, {
+  const url = process.env.SUPABASE_URL ?? "https://uavivgjpfuddrivsmptv.supabase.co";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -15,11 +23,11 @@ export function getSupabase(): SupabaseClient {
 // Replit, where a Postgres database is provisioned via DATABASE_URL instead
 // of Supabase).
 // ---------------------------------------------------------------------------
-const PG_CONNECTION_STRING =
-  process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
 
 export function useDirectPg(): boolean {
-  return !SUPABASE_KEY && !!PG_CONNECTION_STRING;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const conn = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+  return !key && !!conn;
 }
 
 // Cache the pool on `globalThis` (not just a module-level variable) so Vite's
@@ -34,9 +42,10 @@ declare global {
 export async function getPgPool(): Promise<import("pg").Pool> {
   if (globalThis.__gjPgPool) return globalThis.__gjPgPool;
   const { Pool } = await import("pg");
+  const conn = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
   const isReplitDb = !!process.env.DATABASE_URL && !process.env.SUPABASE_DATABASE_URL;
   const pool = new Pool({
-    connectionString: PG_CONNECTION_STRING,
+    connectionString: conn,
     // Replit's managed Postgres doesn't need/accept the relaxed Supabase SSL
     // settings; only apply them when actually talking to Supabase's pooler.
     ssl: isReplitDb ? undefined : { rejectUnauthorized: false },
