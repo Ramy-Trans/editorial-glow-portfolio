@@ -46,3 +46,4 @@ LOGO/
 *.njsproj
 *.sln
 *.sw?
+database/backups/

@@ -12,6 +12,7 @@ export interface Booking extends BookingInput {
   id: number;
   status: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ContactInput {
@@ -25,6 +26,7 @@ export interface ContactInput {
 export interface ContactMessage extends ContactInput {
   id: number;
   created_at: string;
+  updated_at: string;
 }
 
 /* ── Auth helpers ──────────────────────────────────────────── */

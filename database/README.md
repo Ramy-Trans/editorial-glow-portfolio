@@ -1,7 +1,7 @@
 # GJ Media House — Database Schema
 
-Production-ready schema for the Supabase PostgreSQL database.  
-Generated from `src/lib/booking-fns.ts` and the TypeScript interfaces in the same file.
+Production-ready PostgreSQL schema for the GJ Media House studio app.  
+Sourced from `src/lib/booking-fns.ts` — keep the two files in sync.
 
 ---
 
@@ -17,26 +17,25 @@ Generated from `src/lib/booking-fns.ts` and the TypeScript interfaces in the sam
 
 ---
 
-## How to import into Supabase
+## How to apply the schema
 
-### Step 1 — Open the SQL Editor
+### Replit (development — Postgres)
 
-1. Go to [supabase.com](https://supabase.com) and open your project.
-2. In the left sidebar click **SQL Editor**.
-3. Click **+ New query**.
+```bash
+psql "$DATABASE_URL" -f database/schema.sql
+```
 
-### Step 2 — Paste the schema
+The script is **rebuild-safe**: it drops all tables first, then recreates them cleanly.  
+Re-running it will wipe all data — only do this intentionally.
 
-1. Open `database/schema.sql` from this repository.
-2. Copy the entire file contents.
-3. Paste it into the SQL Editor query window.
+### Supabase (production — Cloudflare Pages)
 
-### Step 3 — Run the migration
+1. Go to [supabase.com](https://supabase.com) → your project → **SQL Editor**
+2. Click **+ New query**
+3. Paste the entire contents of `database/schema.sql`
+4. Click **Run** (or `Ctrl+Enter`)
 
-Click the **Run** button (or press `Ctrl+Enter` / `Cmd+Enter`).
-
-You should see output like:
-
+Expected output:
 ```
 table_name         row_count   status
 -----------------  ----------  ------
@@ -44,11 +43,9 @@ bookings           0           ready
 contact_messages   0           ready
 ```
 
-Both tables are now created with the correct columns, indexes, constraints, and Row-Level Security settings.
-
 ---
 
-## Schema summary
+## Schema reference
 
 ### `bookings`
 
@@ -56,12 +53,16 @@ Both tables are now created with the correct columns, indexes, constraints, and 
 |---|---|---|---|---|
 | `id` | `bigserial` | NO | auto | Primary key |
 | `name` | `text` | NO | — | Client full name |
-| `email` | `text` | NO | — | Client email |
+| `email` | `text` | NO | — | Client email (must contain `@`) |
 | `phone` | `text` | NO | — | Client phone |
 | `occasion` | `text` | NO | — | Type of event |
 | `description` | `text` | NO | `''` | Event details |
 | `status` | `text` | NO | `'pending'` | `pending` / `confirmed` / `rejected` |
 | `created_at` | `timestamptz` | NO | `now()` | Submission timestamp |
+| `updated_at` | `timestamptz` | NO | `now()` | Auto-updated by trigger on status change |
+
+Indexes: `created_at DESC`, `status`, `email`  
+Trigger: `bookings_set_updated_at` → calls `gj_set_updated_at()`
 
 ### `contact_messages`
 
@@ -69,11 +70,15 @@ Both tables are now created with the correct columns, indexes, constraints, and 
 |---|---|---|---|---|
 | `id` | `bigserial` | NO | auto | Primary key |
 | `name` | `text` | NO | — | Visitor name |
-| `email` | `text` | NO | — | Visitor email |
+| `email` | `text` | NO | — | Visitor email (must contain `@`) |
 | `phone` | `text` | NO | — | Visitor phone |
 | `event_type` | `text` | NO | `''` | Optional event category |
 | `message` | `text` | NO | `''` | Message body |
 | `created_at` | `timestamptz` | NO | `now()` | Submission timestamp |
+| `updated_at` | `timestamptz` | NO | `now()` | Auto-updated by trigger on row update |
+
+Indexes: `created_at DESC`, `email`  
+Trigger: `contact_messages_set_updated_at` → calls `gj_set_updated_at()`
 
 ---
 
@@ -81,28 +86,38 @@ Both tables are now created with the correct columns, indexes, constraints, and 
 
 RLS is **enabled on both tables** with **no permissive policies**.
 
-- The server uses `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS — all server operations work normally.
-- Any accidental use of the anon key (e.g. client-side leak) is denied at the database level.
-
----
-
-## Environment variables required
-
-Set these in your Replit Secrets (already configured):
-
-| Secret | Description |
+| Key type | Access |
 |---|---|
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only, never expose client-side) |
-| `ADMIN_PASSWORD` | Password for the `/dashboard` admin login |
-| `ADMIN_SECRET` | HMAC signing key for admin session tokens |
+| `service_role` | Bypasses RLS — all server operations work ✓ |
+| `anon` / `authenticated` | Denied by default — no client-side data exposure ✓ |
+
+The server always uses `SUPABASE_SERVICE_ROLE_KEY` (server-only, never sent to the browser).
 
 ---
 
-## Verifying the dashboard login
+## Shared trigger function
 
-1. Visit `/dashboard` on your deployed site.
-2. Enter the value of your `ADMIN_PASSWORD` secret.
-3. Click **Sign In**.
+```sql
+gj_set_updated_at() → sets NEW.updated_at = now() on every UPDATE
+```
 
-The login is verified entirely server-side — the server compares the submitted password against `ADMIN_PASSWORD`, then signs a time-limited HMAC token using `ADMIN_SECRET`. No database query is involved in authentication.
+Applied to both tables via `BEFORE UPDATE` triggers.
+
+---
+
+## Backups
+
+Pre-rebuild schema dumps are saved to `database/backups/`.  
+These are `.gitignore`d — they contain local development state only.
+
+---
+
+## Required environment variables
+
+| Variable | Where to set | Description |
+|---|---|---|
+| `DATABASE_URL` | Replit (auto-provisioned) | Replit Postgres connection string |
+| `SUPABASE_URL` | Hardcoded in `src/lib/db.ts` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Replit Secrets + Cloudflare Pages env | Service role key — **never expose client-side** |
+| `ADMIN_PASSWORD` | Replit Secrets + Cloudflare Pages env | Password for `/dashboard` login |
+| `ADMIN_SECRET` | Replit Secrets + Cloudflare Pages env | HMAC signing key for admin session tokens |

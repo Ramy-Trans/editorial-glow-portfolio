@@ -1,130 +1,155 @@
 -- ============================================================
--- GJ Media House — Production Database Schema
--- Generated from: src/lib/booking-fns.ts + TypeScript interfaces
+-- GJ Media House — Database Schema  (rebuild-safe)
 --
--- Tables:   bookings, contact_messages
--- Auth:     Server-side HMAC only — no DB auth tables needed
+-- Tables   : bookings, contact_messages
+-- Auth     : Server-side HMAC only — no DB auth tables needed
+-- Targets  : Replit PostgreSQL (dev) · Supabase PostgreSQL (prod)
 --
--- Paste into: Supabase Dashboard → SQL Editor → Run
+-- HOW TO APPLY
+--   Replit  → psql "$DATABASE_URL" -f database/schema.sql
+--   Supabase → Dashboard → SQL Editor → paste this file → Run
+--
+-- SAFE TO RE-RUN: drops everything first, then recreates cleanly.
 -- ============================================================
 
 
--- ────────────────────────────────────────────────────────────
--- TABLE: bookings
+-- ── 0. TEARDOWN  ────────────────────────────────────────────
 --
--- Sourced from:
+-- Drop tables (cascade removes dependent indexes/triggers/fks)
+-- Drop the shared trigger function last.
+
+DROP TABLE  IF EXISTS public.contact_messages CASCADE;
+DROP TABLE  IF EXISTS public.bookings         CASCADE;
+DROP FUNCTION IF EXISTS public.gj_set_updated_at() CASCADE;
+
+
+-- ── 1. SHARED TRIGGER FUNCTION  ─────────────────────────────
+
+CREATE OR REPLACE FUNCTION public.gj_set_updated_at()
+  RETURNS trigger
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+COMMENT ON FUNCTION public.gj_set_updated_at() IS
+  'Sets updated_at to the current timestamp on every UPDATE.';
+
+
+-- ── 2. TABLE: bookings  ──────────────────────────────────────
+--
+-- Source interfaces (src/lib/booking-fns.ts):
 --   BookingInput  { name, email, phone, occasion, description }
---   Booking       { id: number, status: string, created_at: string }
---
--- Supabase calls:
---   .from("bookings").insert({ name, email, phone, occasion, description })
---   .from("bookings").select("*").order("created_at", { ascending: false })
---   .from("bookings").update({ status }).eq("id", id)
---   .from("bookings").delete().eq("id", id)
--- ────────────────────────────────────────────────────────────
+--   Booking       extends BookingInput + { id, status, created_at, updated_at }
 
-create table if not exists public.bookings (
-  id          bigserial    primary key,
-  name        text         not null,
-  email       text         not null,
-  phone       text         not null,
-  occasion    text         not null,
-  description text         not null default '',
-  status      text         not null default 'pending'
-                           constraint bookings_status_check
-                           check (status in ('pending', 'confirmed', 'rejected')),
-  created_at  timestamptz  not null default now()
+CREATE TABLE public.bookings (
+  id          bigserial    NOT NULL,
+  name        text         NOT NULL,
+  email       text         NOT NULL CHECK (email LIKE '%@%'),
+  phone       text         NOT NULL,
+  occasion    text         NOT NULL,
+  description text         NOT NULL DEFAULT '',
+  status      text         NOT NULL DEFAULT 'pending',
+  created_at  timestamptz  NOT NULL DEFAULT now(),
+  updated_at  timestamptz  NOT NULL DEFAULT now(),
+
+  CONSTRAINT bookings_pkey
+    PRIMARY KEY (id),
+
+  CONSTRAINT bookings_status_check
+    CHECK (status IN ('pending', 'confirmed', 'rejected'))
 );
 
-comment on table  public.bookings               is 'Booking enquiries submitted via the /booking page.';
-comment on column public.bookings.status        is 'Workflow state: pending → confirmed | rejected.';
-comment on column public.bookings.occasion      is 'Type of event/occasion the client is booking for.';
-comment on column public.bookings.description   is 'Free-text details provided by the client.';
+-- Trigger: keep updated_at current
+CREATE TRIGGER bookings_set_updated_at
+  BEFORE UPDATE ON public.bookings
+  FOR EACH ROW EXECUTE FUNCTION public.gj_set_updated_at();
+
+-- Comments
+COMMENT ON TABLE  public.bookings             IS 'Booking enquiries submitted via /booking.';
+COMMENT ON COLUMN public.bookings.occasion    IS 'Type of event/occasion the client is booking for.';
+COMMENT ON COLUMN public.bookings.description IS 'Free-text details provided by the client.';
+COMMENT ON COLUMN public.bookings.status      IS 'Workflow state: pending → confirmed | rejected.';
+COMMENT ON COLUMN public.bookings.updated_at  IS 'Auto-updated by trigger on every status change.';
+
+-- Indexes (match ORDER BY and WHERE patterns used by the dashboard)
+CREATE INDEX bookings_created_at_idx ON public.bookings (created_at DESC);
+CREATE INDEX bookings_status_idx     ON public.bookings (status);
+CREATE INDEX bookings_email_idx      ON public.bookings (email);
 
 
--- ────────────────────────────────────────────────────────────
--- TABLE: contact_messages
+-- ── 3. TABLE: contact_messages  ─────────────────────────────
 --
--- Sourced from:
+-- Source interfaces (src/lib/booking-fns.ts):
 --   ContactInput    { name, email, phone, event_type, message }
---   ContactMessage  { id: number, created_at: string }
---
--- Supabase calls:
---   .from("contact_messages").insert({ name, email, phone, event_type, message })
---   .from("contact_messages").select("*").order("created_at", { ascending: false })
---   .from("contact_messages").delete().eq("id", id)
--- ────────────────────────────────────────────────────────────
+--   ContactMessage  extends ContactInput + { id, created_at, updated_at }
 
-create table if not exists public.contact_messages (
-  id          bigserial    primary key,
-  name        text         not null,
-  email       text         not null,
-  phone       text         not null,
-  event_type  text         not null default '',
-  message     text         not null default '',
-  created_at  timestamptz  not null default now()
+CREATE TABLE public.contact_messages (
+  id          bigserial    NOT NULL,
+  name        text         NOT NULL,
+  email       text         NOT NULL CHECK (email LIKE '%@%'),
+  phone       text         NOT NULL,
+  event_type  text         NOT NULL DEFAULT '',
+  message     text         NOT NULL DEFAULT '',
+  created_at  timestamptz  NOT NULL DEFAULT now(),
+  updated_at  timestamptz  NOT NULL DEFAULT now(),
+
+  CONSTRAINT contact_messages_pkey
+    PRIMARY KEY (id)
 );
 
-comment on table  public.contact_messages            is 'Messages submitted via the /contact page.';
-comment on column public.contact_messages.event_type is 'Optional event type the enquiry relates to.';
-comment on column public.contact_messages.message    is 'Free-text message body from the visitor.';
+-- Trigger: keep updated_at current
+CREATE TRIGGER contact_messages_set_updated_at
+  BEFORE UPDATE ON public.contact_messages
+  FOR EACH ROW EXECUTE FUNCTION public.gj_set_updated_at();
+
+-- Comments
+COMMENT ON TABLE  public.contact_messages            IS 'Messages submitted via the /contact page.';
+COMMENT ON COLUMN public.contact_messages.event_type IS 'Optional event category the enquiry relates to.';
+COMMENT ON COLUMN public.contact_messages.message    IS 'Free-text message body from the visitor.';
+COMMENT ON COLUMN public.contact_messages.updated_at IS 'Auto-updated by trigger on every row update.';
+
+-- Indexes
+CREATE INDEX contact_messages_created_at_idx ON public.contact_messages (created_at DESC);
+CREATE INDEX contact_messages_email_idx      ON public.contact_messages (email);
 
 
--- ────────────────────────────────────────────────────────────
--- INDEXES
--- Matches the ORDER BY and WHERE patterns used by the dashboard
--- ────────────────────────────────────────────────────────────
-
--- bookings: default dashboard sort + status filter
-create index if not exists bookings_created_at_idx
-  on public.bookings (created_at desc);
-
-create index if not exists bookings_status_idx
-  on public.bookings (status);
-
-create index if not exists bookings_email_idx
-  on public.bookings (email);
-
--- contact_messages: default dashboard sort
-create index if not exists contact_messages_created_at_idx
-  on public.contact_messages (created_at desc);
-
-create index if not exists contact_messages_email_idx
-  on public.contact_messages (email);
-
-
--- ────────────────────────────────────────────────────────────
--- ROW-LEVEL SECURITY
+-- ── 4. ROW-LEVEL SECURITY  ──────────────────────────────────
 --
--- The application exclusively uses SUPABASE_SERVICE_ROLE_KEY,
--- which bypasses RLS by design. Enabling RLS with no permissive
--- policies ensures that if the anon key were ever accidentally
--- used client-side, it would be denied at the database level.
--- ────────────────────────────────────────────────────────────
+-- The server exclusively uses SUPABASE_SERVICE_ROLE_KEY, which
+-- bypasses RLS by design.  Enabling RLS with NO permissive
+-- policies means the anon key (if ever accidentally used
+-- client-side) is denied at the DB level — zero data exposure.
 
-alter table public.bookings         enable row level security;
-alter table public.contact_messages enable row level security;
+ALTER TABLE public.bookings         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
 
 -- No permissive policies are created intentionally.
--- Service-role key (server-only) → bypasses RLS ✓
--- Anon / authenticated keys       → denied by default ✓
+-- service_role key  → bypasses RLS ✓
+-- anon / authed key → denied by default ✓
 
 
--- ────────────────────────────────────────────────────────────
--- VERIFICATION
--- Run these after applying the schema. Both should return 0.
--- ────────────────────────────────────────────────────────────
+-- ── 5. VERIFICATION QUERY  ──────────────────────────────────
+--
+-- Run this after applying. All rows should show 0 / ready.
 
-select
-  'bookings'         as table_name,
-  count(*)           as row_count,
-  'ready'            as status
-from public.bookings
+SELECT
+  relname                                           AS table_name,
+  (SELECT count(*) FROM public.bookings)            AS row_count,
+  'ready'                                           AS status
+FROM pg_class
+WHERE relname = 'bookings'
+  AND relnamespace = 'public'::regnamespace
 
-union all
+UNION ALL
 
-select
-  'contact_messages' as table_name,
-  count(*)           as row_count,
-  'ready'            as status
-from public.contact_messages;
+SELECT
+  relname,
+  (SELECT count(*) FROM public.contact_messages),
+  'ready'
+FROM pg_class
+WHERE relname = 'contact_messages'
+  AND relnamespace = 'public'::regnamespace;
