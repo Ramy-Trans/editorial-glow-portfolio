@@ -1,29 +1,31 @@
 // ---------------------------------------------------------------------------
-// Database — Replit PostgreSQL via pg Pool
+// Database — Replit PostgreSQL
 //
-// Env var: DATABASE_URL (auto-provided by Replit PostgreSQL)
+// We deliberately do NOT pass `connectionString: process.env.DATABASE_URL`
+// here. Vite's SSR bundler can interfere with process.env string reads for
+// long connection strings. Instead we let node-postgres read the individual
+// PG* env vars (PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD) which
+// Replit sets automatically and which survive the SSR context reliably.
 //
-// The pool is cached on globalThis so Vite HMR re-evaluations in dev
-// reuse the same pool instead of leaking connections.
+// The pool is cached on globalThis so Vite HMR module re-evaluations in dev
+// reuse the same pool rather than leaking connections.
 // ---------------------------------------------------------------------------
 
-import type { Pool } from "pg";
+import type { Pool as PgPool } from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __gjPgPool: Pool | undefined;
+  var __gjPgPool: PgPool | undefined;
 }
 
-export async function getPool(): Promise<Pool> {
+export async function getPool(): Promise<PgPool> {
   if (globalThis.__gjPgPool) return globalThis.__gjPgPool;
 
   const { Pool } = await import("pg");
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 5,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
-  });
+
+  // No options — pg reads PGHOST / PGPORT / PGDATABASE / PGUSER / PGPASSWORD
+  // from the environment automatically.
+  const pool = new Pool({ max: 5 });
 
   pool.on("error", (err) => {
     console.error("[db] Unexpected pool error:", err);
