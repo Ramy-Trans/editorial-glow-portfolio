@@ -11,6 +11,8 @@ if (process.env.CF_PAGES) {
   process.env.NITRO_PRESET ??= "node";
 }
 
+const API_PORT = process.env.API_PORT ?? "3001";
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -34,6 +36,14 @@ export default defineConfig({
     allowedHosts: true,
     watch: {
       ignored: ["**/.local/**", "**/node_modules/**"],
+    },
+    // Proxy /api/* to the Express API server so browser fetches also work
+    proxy: {
+      "/api": {
+        target: `http://localhost:${API_PORT}`,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
