@@ -9,7 +9,14 @@ const preset = process.env.NITRO_PRESET ?? "node";
 
 const clientDir = join(root, "dist", "client");
 
-if (preset === "netlify") {
+if (preset === "cloudflare-pages") {
+  // Nitro's cloudflare-pages preset outputs everything to .output/public/
+  // (including _worker.js). No post-processing needed — Cloudflare Pages
+  // picks up _worker.js automatically from the build output directory.
+  console.log(
+    "[build-output] cloudflare-pages preset detected — Nitro output is self-contained. No post-processing needed."
+  );
+} else if (preset === "netlify") {
   mkdirSync(join(root, "netlify", "functions"), { recursive: true });
 
   const bundleCmd = [
