@@ -3,9 +3,11 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import path from "node:path";
 
 // Auto-detect Cloudflare Pages build environment
-if (process.env.CF_PAGES) {
+const isCFBuild = !!process.env.CF_PAGES;
+if (isCFBuild) {
   process.env.NITRO_PRESET = "cloudflare-pages";
 } else {
   process.env.NITRO_PRESET ??= "node";
@@ -26,6 +28,16 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // On Cloudflare Pages builds, swap the pg-based DB implementation for the
+      // Supabase HTTP client — same interface, edge-compatible transport.
+      // On Node.js / Replit deployments, no alias: pg is used directly.
+      ...(isCFBuild
+        ? {
+            "@/lib/db-impl.server": path.resolve(
+              "./src/lib/db-impl.supabase.server.ts"
+            ),
+          }
+        : {}),
       "@": `${process.cwd()}/src`,
     },
   },

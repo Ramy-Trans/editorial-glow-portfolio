@@ -2,3 +2,4 @@
 - [Nitro cloudflare-pages process.env bug](nitro-cloudflare-pages-env.md) — cloudflare-pages preset omits `globalThis.__env__ = env` in fetch handler; process.env is always undefined without the patch in scripts/patch-nitro.js.
 - [Silent form submit blocked by native select validation](tanstack-start-form-native-validation.md) — required <select> left unfilled blocks onSubmit with zero network/console output; use noValidate + manual validation.
 - [GJ Media House DB not auto-provisioned](gj-media-house-db-setup.md) — DATABASE_URL existing doesn't mean tables exist; must run database/schema.sql manually against it.
+- [booking-fns Express proxy bug](booking-fns-express-proxy-bug.md) — Never proxy createServerFn handlers to Express; prod deployment only runs Nitro. Use db-impl.server abstraction (pg on Replit, Supabase on CF).

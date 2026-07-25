@@ -2,19 +2,25 @@
  * src/lib/booking-fns.ts
  *
  * TanStack Start server-function wrappers.
+ * All DB operations are delegated to "@/lib/db-impl.server", which resolves to:
+ *   - db-impl.server.ts         (pg, direct TCP) — Replit / Node.js deployments
+ *   - db-impl.supabase.server.ts (Supabase HTTP) — Cloudflare Pages builds (CF_PAGES=1)
  *
- * These functions run inside the Nitro/Cloudflare Worker — no separate Express
- * process is needed. Database access goes via Supabase (HTTP, edge-compatible).
+ * The alias is set in vite.config.ts. No code changes needed when switching targets.
  *
- * On Replit dev the same code runs inside the Vite/Nitro server. The Express
- * API in api/ is no longer called by these functions; it is kept only as a
- * standalone server for direct local testing.
+ * WHAT WAS WRONG BEFORE (the "fetch failed" root cause):
+ *   const API_BASE = process.env.API_BASE_URL ?? "http://localhost:3001";
+ *   Every handler proxied server-side to the Express API on port 3001.
+ *   The Replit deployment run command only starts Nitro — Express never runs in
+ *   production, so every createServerFn call hit ERR_CONNECTION_REFUSED and the
+ *   browser showed "fetch failed". The .replit.app preview worked because it ran
+ *   the dev workflow which starts both servers.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { getSupabase } from "./db.server";
+import * as db from "@/lib/db-impl.server";
 import { signToken, verifyToken } from "./auth.server";
 
-/* ── Types ───────────────────────────────────────────────────── */
+/* ── Types (re-exported so the dashboard can import them) ────── */
 
 export interface BookingInput {
   name: string;
@@ -70,20 +76,13 @@ export const submitContactFn = createServerFn({ method: "POST" })
     if (!str(data.email)) throwBad("email is required");
     if (!isValidEmail(data.email)) throwBad("Invalid email address");
 
-    const { error } = await getSupabase()
-      .from("contact_messages")
-      .insert({
-        name: str(data.name),
-        email: str(data.email),
-        phone: str(data.phone),
-        event_type: str(data.event_type),
-        message: str(data.message),
-      });
-
-    if (error) {
-      console.error("[submitContactFn] Supabase insert error:", error.message);
-      throw new Error("Failed to save message. Please try again.");
-    }
+    await db.insertContact({
+      name: str(data.name),
+      email: str(data.email),
+      phone: str(data.phone),
+      event_type: str(data.event_type),
+      message: str(data.message),
+    });
 
     return { success: true as const };
   });
@@ -97,20 +96,13 @@ export const submitBookingFn = createServerFn({ method: "POST" })
     if (!str(data.occasion)) throwBad("occasion is required");
     if (!isValidEmail(data.email)) throwBad("Invalid email address");
 
-    const { error } = await getSupabase()
-      .from("bookings")
-      .insert({
-        name: str(data.name),
-        email: str(data.email),
-        phone: str(data.phone),
-        occasion: str(data.occasion),
-        description: str(data.description),
-      });
-
-    if (error) {
-      console.error("[submitBookingFn] Supabase insert error:", error.message);
-      throw new Error("Failed to save booking. Please try again.");
-    }
+    await db.insertBooking({
+      name: str(data.name),
+      email: str(data.email),
+      phone: str(data.phone),
+      occasion: str(data.occasion),
+      description: str(data.description),
+    });
 
     return { success: true as const };
   });
@@ -126,7 +118,6 @@ export const adminLoginFn = createServerFn({ method: "POST" })
       process.env.ADMIN_PASSWORD ?? "GJstudio#5x2uivfd8RufEwXX!2026";
 
     if (data.password !== adminPass) {
-      // Small delay to slow brute-force attempts
       await new Promise((r) => setTimeout(r, 300));
       const err = new Error("Incorrect password");
       (err as Error & { status: number }).status = 401;
@@ -154,14 +145,8 @@ export const getBookingsFn = createServerFn({ method: "POST" })
       (err as Error & { status: number }).status = 401;
       throw err;
     }
-
-    const { data: bookings, error } = await getSupabase()
-      .from("bookings")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw new Error(error.message);
-    return { bookings: (bookings ?? []) as Booking[] };
+    const bookings = await db.getBookings();
+    return { bookings };
   });
 
 export const getContactMessagesFn = createServerFn({ method: "POST" })
@@ -172,14 +157,8 @@ export const getContactMessagesFn = createServerFn({ method: "POST" })
       (err as Error & { status: number }).status = 401;
       throw err;
     }
-
-    const { data: messages, error } = await getSupabase()
-      .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw new Error(error.message);
-    return { messages: (messages ?? []) as ContactMessage[] };
+    const messages = await db.getContactMessages();
+    return { messages };
   });
 
 export const updateBookingStatusFn = createServerFn({ method: "POST" })
@@ -198,14 +177,8 @@ export const updateBookingStatusFn = createServerFn({ method: "POST" })
       throwBad("status must be pending | confirmed | rejected");
     }
 
-    const { error, count } = await getSupabase()
-      .from("bookings")
-      .update({ status: data.status })
-      .eq("id", data.id)
-      .select("id", { count: "exact", head: true });
-
-    if (error) throw new Error(error.message);
-    if (!count) throwBad("Booking not found");
+    const { found } = await db.updateBookingStatus(data.id, data.status);
+    if (!found) throwBad("Booking not found");
 
     return { success: true as const };
   });
@@ -218,13 +191,7 @@ export const deleteBookingFn = createServerFn({ method: "POST" })
       (err as Error & { status: number }).status = 401;
       throw err;
     }
-
-    const { error } = await getSupabase()
-      .from("bookings")
-      .delete()
-      .eq("id", data.id);
-
-    if (error) throw new Error(error.message);
+    await db.deleteBooking(data.id);
     return { success: true as const };
   });
 
@@ -236,12 +203,6 @@ export const deleteContactMessageFn = createServerFn({ method: "POST" })
       (err as Error & { status: number }).status = 401;
       throw err;
     }
-
-    const { error } = await getSupabase()
-      .from("contact_messages")
-      .delete()
-      .eq("id", data.id);
-
-    if (error) throw new Error(error.message);
+    await db.deleteContactMessage(data.id);
     return { success: true as const };
   });
