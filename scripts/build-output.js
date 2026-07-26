@@ -5,17 +5,61 @@ import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-const preset = process.env.NITRO_PRESET ?? "node";
+// CF Pages sets CF_PAGES=1 in the environment automatically.
+// vite.config.ts sets NITRO_PRESET=cloudflare-pages inside the Vite subprocess,
+// but that assignment doesn't propagate back to this process — so we must also
+// check CF_PAGES directly.
+const preset =
+  process.env.NITRO_PRESET ??
+  (process.env.CF_PAGES ? "cloudflare-pages" : "node");
 
 const clientDir = join(root, "dist", "client");
 
 if (preset === "cloudflare-pages") {
-  // Nitro's cloudflare-pages preset outputs everything to .output/public/
-  // (including _worker.js). No post-processing needed — Cloudflare Pages
-  // picks up _worker.js automatically from the build output directory.
-  console.log(
-    "[build-output] cloudflare-pages preset detected — Nitro output is self-contained. No post-processing needed."
-  );
+  // ── Cloudflare Pages ──────────────────────────────────────────────────────
+  // TanStack Start's Vite plugin outputs:
+  //   dist/client/          ← static assets (JS, CSS, images)
+  //   dist/server/server.js ← SSR entry with a CF-compatible `export default { fetch }`
+  //   dist/server/assets/   ← server-side lazy chunks (imported dynamically)
+  //
+  // We need to produce:
+  //   .output/public/            ← Cloudflare Pages build output dir (from wrangler.toml)
+  //   .output/public/_worker.js  ← single-file CF Worker (entry + all chunks bundled)
+  //
+  // esbuild --bundle inlines the dynamic import("./assets/...") calls so the
+  // worker is self-contained. node:* imports are kept external — they're
+  // resolved by the `nodejs_compat` compatibility flag in wrangler.toml.
+
+  mkdirSync(join(root, ".output", "public"), { recursive: true });
+
+  // 1. Copy static client assets
+  if (existsSync(clientDir)) {
+    cpSync(clientDir, join(root, ".output", "public"), { recursive: true });
+    console.log("[build-output] Copied dist/client → .output/public");
+  }
+
+  // 2. Bundle the SSR server entry + its dynamic chunks into _worker.js
+  const esbuildBin = join(root, "node_modules", ".bin", "esbuild");
+  const workerEntry = join(root, "dist", "server", "server.js");
+  const workerOut   = join(root, ".output", "public", "_worker.js");
+
+  const bundleCmd = [
+    esbuildBin,
+    workerEntry,
+    "--bundle",
+    "--format=esm",
+    "--platform=browser",
+    "--target=esnext",
+    "--external:node:*",
+    "--external:cloudflare:*",
+    "--conditions=workerd,browser,module,default",
+    "--main-fields=module,browser,main",
+    `--outfile=${workerOut}`,
+  ].join(" ");
+
+  console.log("[build-output] Bundling Cloudflare Worker…");
+  execSync(bundleCmd, { stdio: "inherit", cwd: root });
+  console.log("[build-output] Created .output/public/_worker.js ✓");
 } else if (preset === "netlify") {
   mkdirSync(join(root, "netlify", "functions"), { recursive: true });
 
