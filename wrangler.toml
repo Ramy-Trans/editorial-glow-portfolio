@@ -8,6 +8,7 @@
 name = "editorial-glow-portfolio"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+main = ".output/server/index.mjs"
 pages_build_output_dir = ".output/public"
 
 # ── Environment variables ─────────────────────────────────────
@@ -16,6 +17,8 @@ pages_build_output_dir = ".output/public"
 # (or via `wrangler pages secret put VAR_NAME`).
 [vars]
 NODE_ENV = "production"
+[assets]
+directory = ".output/public"
 
 # ── Required secrets (set in Cloudflare dashboard, NOT here) ──
 # ADMIN_PASSWORD        — password to log in at /dashboard
