@@ -3,3 +3,4 @@
 - [Silent form submit blocked by native select validation](tanstack-start-form-native-validation.md) — required <select> left unfilled blocks onSubmit with zero network/console output; use noValidate + manual validation.
 - [GJ Media House DB not auto-provisioned](gj-media-house-db-setup.md) — DATABASE_URL existing doesn't mean tables exist; must run database/schema.sql manually against it.
 - [booking-fns Express proxy bug](booking-fns-express-proxy-bug.md) — Never proxy createServerFn handlers to Express; prod deployment only runs Nitro. Use db-impl.server abstraction (pg on Replit, Supabase on CF).
+- [CF Pages worker build](cf-pages-worker-build.md) — TanStack Start doesn't invoke Nitro's preset bundler; build-output.js must detect CF_PAGES and run esbuild to produce _worker.js from dist/server/server.js.
