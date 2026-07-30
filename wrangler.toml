@@ -6,7 +6,7 @@
 # In the Cloudflare Pages dashboard → Settings → Build & deployments:
 #   Build command:        npm install && npm run build
 #   Build output dir:     .output/public          ← CF Pages serves this folder
-#   Deploy command:       npx wrangler pages deploy .output/public --project-name editorial-glow-portfolio
+#   Deploy command:       npx wrangler pages deploy .output/public --project-name editorial-glow-portfolios
 #   Environment variable: CF_PAGES=1              ← add this so the build uses the CF preset
 #
 # DO NOT use `wrangler deploy` (no "pages" subcommand) — that is the Workers
@@ -17,7 +17,7 @@
 # DO NOT use `wrangler versions upload` — that is for Workers versioning.
 # ─────────────────────────────────────────────────────────────────────────────
 
-name = "editorial-glow-portfolio"
+name = "editorial-glow-portfolios"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
