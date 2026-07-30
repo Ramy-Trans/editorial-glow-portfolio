@@ -1,27 +1,36 @@
 # wrangler.toml — Cloudflare Pages configuration
-# Used by `wrangler pages dev` for local Cloudflare preview.
-# The Cloudflare Pages dashboard build settings must also match:
-#   Build command:       npm install && npm run build
-#   Build output dir:    .output/public
-#   Environment variable: CF_PAGES=1  (triggers NITRO_PRESET=cloudflare-pages)
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: This is a PAGES project, not a Workers project.
+#
+# In the Cloudflare Pages dashboard → Settings → Build & deployments:
+#   Build command:        npm install && npm run build
+#   Build output dir:     .output/public          ← CF Pages serves this folder
+#   Deploy command:       (leave EMPTY)            ← CF Pages handles upload automatically
+#   Environment variable: CF_PAGES=1              ← add this so the build uses the CF preset
+#
+# DO NOT set the deploy command to `wrangler deploy` — that is the Workers
+# deploy command.  It ignores pages_build_output_dir, re-bundles the server
+# entry as a legacy IIFE Worker, and fails with top-level-await errors.
+#
+# DO NOT add a `main` field — that also switches Wrangler into Workers mode.
+# ─────────────────────────────────────────────────────────────────────────────
 
 name = "editorial-glow-portfolio"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-main = ".output/server/index.mjs"
+
+# Cloudflare Pages reads this field and serves the contents of .output/public.
+# The build script (scripts/build-output.js) places _worker.js + all static
+# assets here when CF_PAGES=1 is set in the build environment.
 pages_build_output_dir = ".output/public"
 
-# ── Environment variables ─────────────────────────────────────
-# Non-secret values can go here. Secrets must be set in the
-# Cloudflare Pages dashboard → Settings → Environment Variables
-# (or via `wrangler pages secret put VAR_NAME`).
+# ── Non-secret environment variables ─────────────────────────────────────────
 [vars]
 NODE_ENV = "production"
-[assets]
-directory = ".output/public"
 
-# ── Required secrets (set in Cloudflare dashboard, NOT here) ──
-# ADMIN_PASSWORD        — password to log in at /dashboard
-# ADMIN_SECRET          — HMAC signing key for admin tokens
-# SUPABASE_URL          — https://xxx.supabase.co
-# SUPABASE_SERVICE_ROLE_KEY — service role key (not anon key)
+# ── Required secrets (set in CF Pages dashboard → Settings → Environment Variables)
+# ADMIN_PASSWORD            — password to log in at /dashboard
+# ADMIN_SECRET              — HMAC signing key for admin tokens
+# SUPABASE_URL              — https://xxx.supabase.co
+# SUPABASE_SERVICE_ROLE_KEY — service role key (not the anon key)
