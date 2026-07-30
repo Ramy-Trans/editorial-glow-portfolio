@@ -18,7 +18,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 name = "editorial-glow-portfolio"
-compatibility_date = "2024-09-23"
+main = ".output/public/_worker.js"
+compatibility_date = "2026-07-30"
 compatibility_flags = ["nodejs_compat"]
 
 # Cloudflare Pages reads this field and serves the contents of .output/public.
