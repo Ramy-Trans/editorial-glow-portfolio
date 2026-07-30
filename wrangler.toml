@@ -17,7 +17,7 @@
 # DO NOT use `wrangler versions upload` — that is for Workers versioning.
 # ─────────────────────────────────────────────────────────────────────────────
 
-name = "editorial-glow-portfolios"
+name = "editorial-glow-portfolio"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
