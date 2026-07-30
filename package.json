@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "postinstall": "node scripts/patch-nitro.js",
     "dev:vite": "vite dev",
-    "api": "node api/index.js"
+    "api": "node api/index.js",
+    "cf:deploy": "wrangler pages deploy .output/public --project-name editorial-glow-portfolio"
   },
   "engines": {
     "node": ">=22.0.0"

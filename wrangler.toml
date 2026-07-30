@@ -6,14 +6,15 @@
 # In the Cloudflare Pages dashboard → Settings → Build & deployments:
 #   Build command:        npm install && npm run build
 #   Build output dir:     .output/public          ← CF Pages serves this folder
-#   Deploy command:       (leave EMPTY)            ← CF Pages handles upload automatically
+#   Deploy command:       npx wrangler pages deploy .output/public --project-name editorial-glow-portfolio
 #   Environment variable: CF_PAGES=1              ← add this so the build uses the CF preset
 #
-# DO NOT set the deploy command to `wrangler deploy` — that is the Workers
+# DO NOT use `wrangler deploy` (no "pages" subcommand) — that is the Workers
 # deploy command.  It ignores pages_build_output_dir, re-bundles the server
 # entry as a legacy IIFE Worker, and fails with top-level-await errors.
 #
 # DO NOT add a `main` field — that also switches Wrangler into Workers mode.
+# DO NOT use `wrangler versions upload` — that is for Workers versioning.
 # ─────────────────────────────────────────────────────────────────────────────
 
 name = "editorial-glow-portfolio"
